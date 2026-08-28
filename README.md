@@ -39,8 +39,18 @@ npm run preview
    mark, theme, sidebar sections, nav links, footer, feature flags, edit links.
 2. **Pick a theme.** Set `themes.light` / `themes.dark` to any of the 35 built-in
    daisyUI themes, or customise `og-light` / `og-dark` in `src/styles/global.css`.
-3. **Replace `src/content/docs/`** with their content.
-4. **Trim the theme bundle.** `src/styles/global.css` ships `themes: all` so you can
+3. **Swap the logo.** `src/components/Logo.astro` holds an inline SVG wordmark.
+   Replace the paths with the client's, keeping two rules:
+   - shapes that should follow the theme use `fill="currentColor"`
+   - fixed brand accents use `var(--brand-accent, #hex)`
+
+   That's what lets one wordmark stay legible on all 37 themes without
+   shipping light and dark copies. Set `useLogo: false` to fall back to the
+   `mark` emoji. Replace `public/favicon.png` and
+   `src/assets/nqub-wordmark-white.png` (the OG card logo) too.
+
+4. **Replace `src/content/docs/`** with their content.
+5. **Trim the theme bundle.** `src/styles/global.css` ships `themes: all` so you can
    demo every look. Before production, narrow it:
    ```css
    @plugin 'daisyui' {
@@ -49,12 +59,21 @@ npm run preview
        og-dark --prefersdark;
    }
    ```
-5. **Set `site`** in `wiki.config.ts` to the real URL (sitemap, canonicals, OG images).
-6. **Set `base`** if it deploys to a sub-path. `'/'` for a domain root or a GitHub
+6. **Set `site`** in `wiki.config.ts` to the real URL (sitemap, canonicals, OG images).
+7. **Set `base`** if it deploys to a sub-path. `'/'` for a domain root or a GitHub
    user/org page; `'/client-wiki/'` for a GitHub _project_ page. Every internal
    link goes through `src/lib/links.ts`, so this one value moves the whole site.
-7. Run `npm run preflight` — it lists any placeholder you forgot.
-8. `npm run verify && npm run preview`, click through search, then deploy `dist/`.
+8. Run `npm run preflight` — it lists any placeholder you forgot.
+9. `npm run verify && npm run preview`, click through search, then deploy `dist/`.
+
+### Brand assets
+
+| Asset            | Where                                | Notes                                      |
+| ---------------- | ------------------------------------ | ------------------------------------------ |
+| Wordmark         | `src/components/Logo.astro`          | Inline SVG, theme-aware via `currentColor` |
+| Original vectors | `src/assets/brand/`                  | Kept for future re-brands; not bundled     |
+| Favicon          | `public/favicon.png`                 | Set the path in `wiki.config.ts`           |
+| OG card logo     | `src/assets/nqub-wordmark-white.png` | Raster only — CanvasKit can't decode SVG   |
 
 ### Re-branding is one block of CSS
 
