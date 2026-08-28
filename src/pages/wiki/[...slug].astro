@@ -20,7 +20,7 @@ import {
   statusStyle,
   formatDate,
 } from '../../lib/content';
-import { tagUrl } from '../../lib/links';
+import { editUrl, tagUrl } from '../../lib/links';
 
 export async function getStaticPaths() {
   const docs = await getDocs();
@@ -38,7 +38,7 @@ const crumbs = breadcrumbsFor(doc);
 // Take the extension from the real file — .md and .mdx pages coexist, and a
 // hardcoded '.md' produces a 404 for every MDX page.
 const ext = doc.filePath?.match(/\.mdx?$/)?.[0] ?? '.md';
-const editUrl = wiki.editBase ? `${wiki.editBase}/${doc.id}${ext}` : undefined;
+const pageEditUrl = editUrl(wiki.repo, wiki.branch, wiki.contentPath, doc.id, ext);
 const knownIds = [...(await getKnownIds())];
 ---
 
@@ -92,9 +92,9 @@ const knownIds = [...(await getKnownIds())];
           {doc.data.owner && <span>Owner · {doc.data.owner}</span>}
           {wiki.features.lastUpdated && updated && <span>Updated · {updated}</span>}
           {
-            wiki.features.editLinks && editUrl && (
+            wiki.features.editLinks && pageEditUrl && (
               <a
-                href={editUrl}
+                href={pageEditUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="link link-hover flex items-center gap-1"

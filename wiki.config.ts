@@ -57,8 +57,16 @@ export interface WikiConfig {
    * Leave '' to fall back to an emoji favicon built from `mark`.
    */
   favicon: string;
-  /** Base URL for "Edit this page" links. Set to '' to disable. */
-  editBase: string;
+  /**
+   * GitHub repository as "owner/name". Single source of truth for
+   * "Edit this page" links AND the /admin CMS backend.
+   * Leave '' to disable both.
+   */
+  repo: string;
+  /** Branch that content is edited on. */
+  branch: string;
+  /** Where content lives inside the repo. */
+  contentPath: string;
   /** Auto-generated social share images (Open Graph / Twitter cards). */
   ogImage: {
     enabled: boolean;
@@ -149,7 +157,9 @@ export const wiki: WikiConfig = {
   },
 
   favicon: '/favicon.png',
-  editBase: 'https://github.com/your-org/your-wiki/edit/main/src/content/docs',
+  repo: 'your-org/your-wiki',
+  branch: 'main',
+  contentPath: 'src/content/docs',
 
   ogImage: {
     enabled: true,

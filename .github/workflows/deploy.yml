@@ -1,8 +1,17 @@
 name: Deploy to GitHub Pages
 
+# OPT-IN, for PUBLIC wikis only (open-source docs, public handbooks).
+#
+# GitHub Pages cannot serve a private site without GitHub Enterprise Cloud,
+# so it is the wrong target for client documentation. Client wikis use
+# deploy-cloudflare.yml, which can sit behind Cloudflare Access.
+#
+# Deliberately manual-only: if this also ran on push to main it would race
+# the Cloudflare workflow and publish the same commit twice. To make a wiki
+# public-by-default, add `push: branches: [main]` back here and delete
+# deploy-cloudflare.yml.
+
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,117 @@
+---
+title: Delivering a wiki to a client
+description: Provisioning a new client wiki end to end — repo, hosting, access control, handover.
+icon: 📦
+section: Operations
+order: 2
+tags: [delivery, hosting, access, cloudflare, template]
+status: stable
+updated: 2026-08-28
+owner: Platform Team
+featured: true
+---
+
+## The constraint everything else follows from
+
+This wiki is a **static site**. Every file in `dist/` is downloadable by anyone
+who knows its URL. There is no server to check a session.
+
+Two consequences that catch people out:
+
+- **Hiding a page from the sidebar does not make it private.** It is still at
+  its URL.
+- **The search index is a second copy of the content.** Pagefind stores page
+  text so it can return excerpts. Any "hide some sections" scheme leaks through
+  search even if every link is removed.
+
+So there is exactly one rule:
+
+> Access control lives at the edge, and isolation is per-deployment.
+> Client-side gating is decoration, not security.
+
+## One repo, one deployment, one client
+
+Do **not** build a shared multi-tenant wiki with per-section permissions. On a
+static host it cannot be made safe.
+
+Instead, clone the template per client. Client A cannot see client B's content
+because it is a different repository, a different build, a different search
+index and a different domain. That is a boundary that actually holds, and it is
+the model [[start-here/how-to-edit]] and `wiki.config.ts` are already built
+around.
+
+It also means a client who leaves takes a self-contained folder of Markdown with
+them, and nothing of theirs stays entangled with anyone else.
+
+## Choosing a host
+
+| Host                      | Can gate a private site?                      | Use it for                    |
+| ------------------------- | --------------------------------------------- | ----------------------------- |
+| Cloudflare Pages + Access | Yes — email, one-time PIN, or SSO             | **Client wikis**              |
+| Netlify                   | Yes, on paid tiers                            | Alternative if already in use |
+| Vercel                    | Yes, on Pro                                   | Alternative if already in use |
+| GitHub Pages              | **No** — private Pages needs Enterprise Cloud | Public wikis only             |
+
+The repo ships workflows for two of these. `deploy-cloudflare.yml` runs on push
+to `main` and is the default. `deploy.yml` publishes to GitHub Pages and is
+**manual-only**, so the two never race — enable it only for a genuinely public
+wiki.
+
+{/* Verify current Cloudflare Access seat limits before quoting a price. */}
+
+## Provisioning checklist
+
+<Steps>
+
+1. **Create the repo.** Private. Copy this template into it.
+
+2. **Fill in `wiki.config.ts`** — `site`, `base`, `name`, `tagline`, `repo`, and
+   a theme. This is the only file that needs branding changes.
+
+3. **Verify nothing is left over.** `npm run preflight` lists any template
+   placeholders still in place. The production deploy runs it with `--strict`
+   and refuses to publish while any remain.
+
+4. **Create the Cloudflare Pages project**, then set the repository secrets
+   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the variable
+   `CLOUDFLARE_PROJECT_NAME`.
+
+5. **Put Cloudflare Access in front of it.** Allowlist the client's email domain,
+   or named addresses, or wire their SSO. Do this _before_ the first content
+   goes in, not after.
+
+6. **Set up `/admin`** if non-technical people will edit: deploy the
+   `sveltia-cms-auth` Worker, register a GitHub OAuth app against it, and run
+   `npm run gen:cms`. See `CONTRIBUTING.md`.
+
+7. **Update `.github/CODEOWNERS`** so reviews route to real people.
+
+8. **Replace the content.** Delete everything in `src/content/docs/` that ships
+   with the template and write theirs.
+
+9. **Hand over.** Walk them through `CONTRIBUTING.md` — specifically the "Edit
+   this page" button, which is the only thing most people will ever use.
+
+</Steps>
+
+## Who gets what access
+
+| Role             | Repo                           | Site                                            |
+| ---------------- | ------------------------------ | ----------------------------------------------- |
+| Us               | Admin                          | Access policy owner                             |
+| Client reviewers | None                           | Access allowlist                                |
+| Client editors   | Write, scoped via `CODEOWNERS` | Access allowlist                                |
+| The public       | None                           | Blocked, unless the wiki is deliberately public |
+
+Most clients only ever need the middle row. Give repo access only to someone who
+has asked to contribute, and keep their changes flowing through review.
+
+<Callout type="warning" title="Before you publish anything real">
+  Confirm the Access policy is live by opening the production URL in a private window. If the page
+  loads without a sign-in prompt, it is public — and so is the search index.
+</Callout>
+
+## Related
+
+- [[engineering/deploy]] — build commands and the search-index gotcha
+- [[engineering/architecture]] — why the stack is shaped this way

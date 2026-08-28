@@ -150,13 +150,19 @@ Only `title` is required. Full field reference: `/wiki/reference/frontmatter`.
 ```
 wiki.config.ts              ← the only file you edit to re-brand
 astro.config.ts             ← integrations, markdown pipeline, Shiki
+CONTRIBUTING.md             ← how each tier of editor works
 scripts/
   preflight.mjs             ← blocks shipping with placeholders
   check-links.mjs           ← unresolved wikilink report
   check-a11y.mjs            ← dependency-free a11y smoke test
-.github/workflows/
-  ci.yml                    ← format, types, links, build, a11y
-  deploy.yml                ← GitHub Pages (runs preflight --strict first)
+  gen-cms-config.mjs        ← /admin config, generated from wiki.config.ts
+public/admin/               ← Sveltia CMS (config.yml is generated)
+.github/
+  CODEOWNERS                ← review routing
+  workflows/
+    ci.yml                  ← format, types, links, build, a11y
+    deploy-cloudflare.yml   ← Cloudflare Pages + PR previews (default)
+    deploy.yml              ← GitHub Pages, manual-only (public wikis)
 src/
   content.config.ts         ← Zod schema for frontmatter
   content/docs/**/*.md      ← all wiki content
@@ -179,16 +185,65 @@ src/
 
 ---
 
-## Deploying to GitHub Pages
+## Hosting and access control
 
-`.github/workflows/deploy.yml` is ready to go:
+This is a **static site**, and that single fact decides how it gets delivered.
 
-1. Repo **Settings → Pages → Source → GitHub Actions**.
-2. For a _project_ page, set `base: '/<repo-name>/'` in `wiki.config.ts`.
-3. Push to `main`.
+Every file in `dist/` is downloadable by anyone who knows its URL, and the
+Pagefind index is a second copy of the page text. So hiding a page from the
+sidebar does not make it private, and any "gate some sections" scheme leaks
+through search. **Access control has to happen at the edge, and isolation has to
+be per-deployment.**
 
-The deploy job runs `npm run preflight -- --strict` first, so a wiki still
-carrying `example.com` or `your-org` fails loudly instead of shipping.
+Two workflows ship:
+
+| Workflow                | Target           | Trigger                          | Use for                                        |
+| ----------------------- | ---------------- | -------------------------------- | ---------------------------------------------- |
+| `deploy-cloudflare.yml` | Cloudflare Pages | push to `main`, plus PR previews | **Client wikis** (gate with Cloudflare Access) |
+| `deploy.yml`            | GitHub Pages     | manual only                      | Public wikis                                   |
+
+GitHub Pages cannot serve a private site without GitHub Enterprise Cloud, which
+is why it is not the default. `deploy.yml` is manual-only so the two workflows
+never race to publish the same commit.
+
+### Cloudflare setup
+
+Repository **secrets**: `CLOUDFLARE_API_TOKEN` (needs _Cloudflare Pages: Edit_)
+and `CLOUDFLARE_ACCOUNT_ID`. Repository **variable**:
+`CLOUDFLARE_PROJECT_NAME`.
+
+Pull requests get their own preview deployment, and the workflow posts the URL
+as a PR comment. Previews build the search index too, so `⌘K` behaves there
+exactly as it will in production.
+
+Production deploys run `npm run preflight -- --strict` first, so a wiki still
+carrying `example.com` or `your-org` fails loudly instead of shipping. Previews
+skip that check on purpose — a preview is allowed to be half-finished.
+
+The full provisioning checklist lives in the wiki itself, at
+`/wiki/operations/client-delivery`.
+
+## Who edits it
+
+Three tiers, no one forced up a level:
+
+| Editor                  | How                                                                 | Needs                       |
+| ----------------------- | ------------------------------------------------------------------- | --------------------------- |
+| Anyone with repo access | **"Edit this page"** → GitHub web editor → PR                       | A GitHub account            |
+| Non-technical           | **`/admin`** — visual editor, git-backed                            | One-time OAuth Worker setup |
+| Developers              | `npm run dev`, or open `src/content/docs/` as an **Obsidian vault** | Node                        |
+
+The Obsidian route works with no export step because the content is plain
+Markdown and the `[[wikilink]]` syntax is the same one this wiki renders.
+
+`/admin` is [Sveltia CMS](https://github.com/sveltia/sveltia-cms). Its config is
+**generated** from `wiki.config.ts` by `npm run gen:cms` (which `npm run build`
+runs for you), so the editor can never end up pointed at the wrong client's
+repo. Sign-in needs the `sveltia-cms-auth` Cloudflare Worker plus a GitHub OAuth
+app — see `CONTRIBUTING.md`. Until that exists, `/admin` loads but cannot
+authenticate.
+
+Review routing is in `.github/CODEOWNERS`.
 
 ## Notes for the dev team
 

@@ -1,0 +1,20 @@
+# Review routing. GitHub requests these reviewers automatically.
+#
+# Replace the placeholders with real teams or usernames before handing a wiki
+# to a client. Paths are matched last-to-first, so put the narrowest rules at
+# the bottom.
+
+# Anything not matched below.
+*                           @your-org/platform
+
+# Content is the part clients and non-developers touch. Route it to whoever
+# owns editorial quality, not to the build engineers.
+/src/content/docs/          @your-org/docs
+
+# Build, styling and CI. Changing these can break every page at once.
+/astro.config.ts            @your-org/platform
+/wiki.config.ts             @your-org/platform
+/src/styles/global.css      @your-org/platform
+/src/lib/                   @your-org/platform
+/.github/workflows/         @your-org/platform
+/scripts/                   @your-org/platform

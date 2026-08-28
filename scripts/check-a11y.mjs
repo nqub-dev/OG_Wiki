@@ -23,10 +23,19 @@ function walk(dir) {
   });
 }
 
+/**
+ * Pages whose DOM is built entirely by a third-party client-side app, so the
+ * static HTML is only a mount point. Auditing their shell reports noise; audit
+ * the running app instead.
+ */
+const IGNORE = [/^admin\//];
+
 const issues = [];
 const add = (file, rule, detail) => issues.push({ file: relative(DIST, file), rule, detail });
 
-for (const file of walk(DIST)) {
+const auditable = walk(DIST).filter((f) => !IGNORE.some((re) => re.test(relative(DIST, f))));
+
+for (const file of auditable) {
   const html = readFileSync(file, 'utf8');
 
   if (!/<html[^>]+lang=/.test(html))
@@ -62,7 +71,7 @@ for (const file of walk(DIST)) {
   if (h1s > 1) add(file, 'page-has-heading-one', `${h1s} <h1> elements`);
 }
 
-const pages = walk(DIST).length;
+const pages = auditable.length;
 if (issues.length === 0) {
   console.log(`✓ check:a11y — ${pages} pages, no violations`);
   process.exit(0);

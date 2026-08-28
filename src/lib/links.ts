@@ -23,3 +23,22 @@ export function url(path = ''): string {
 export const homeUrl = (): string => url();
 export const docUrl = (id: string): string => url(`wiki/${id}`);
 export const tagUrl = (tag?: string): string => url(tag ? `tags/${tag}` : 'tags');
+
+/**
+ * "Edit this page" URL on GitHub, derived from `repo` / `branch` /
+ * `contentPath` in wiki.config.ts. Returns undefined when `repo` is unset,
+ * which also hides the link — better than shipping one that 404s.
+ *
+ * `ext` matters: .md and .mdx pages coexist and GitHub needs the real path.
+ */
+export function editUrl(
+  repo: string,
+  branch: string,
+  contentPath: string,
+  id: string,
+  ext: string,
+): string | undefined {
+  if (!repo) return undefined;
+  const slug = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$|\/$/, '');
+  return `https://github.com/${slug}/edit/${branch}/${contentPath}/${id}${ext}`;
+}
