@@ -157,7 +157,7 @@ export const wiki: WikiConfig = {
   },
 
   favicon: '/favicon.png',
-  repo: 'your-org/your-wiki',
+  repo: 'nqub-dev/OG_Wiki',
   branch: 'main',
   contentPath: 'src/content/docs',
 

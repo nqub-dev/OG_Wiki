@@ -3,7 +3,7 @@
 
 backend:
   name: github
-  repo: your-org/your-wiki
+  repo: nqub-dev/OG_Wiki
   branch: main
   # Browsers cannot complete a GitHub OAuth flow alone. base_url points at the
   # sveltia-cms-auth Worker (see CONTRIBUTING.md) which holds the client secret.

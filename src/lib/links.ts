@@ -31,6 +31,17 @@ export const tagUrl = (tag?: string): string => url(tag ? `tags/${tag}` : 'tags'
  *
  * `ext` matters: .md and .mdx pages coexist and GitHub needs the real path.
  */
+/**
+ * Values that ship with the template and are not a real repository. Treated
+ * exactly like an unset `repo`: a link we know 404s is worse than no link, so
+ * a freshly cloned wiki hides "Edit this page" until someone sets it.
+ */
+const PLACEHOLDER_REPO = /^\s*$|your-org|your-wiki|owner\/name|example/i;
+
+export function isPlaceholderRepo(repo: string): boolean {
+  return PLACEHOLDER_REPO.test(repo);
+}
+
 export function editUrl(
   repo: string,
   branch: string,
@@ -38,7 +49,7 @@ export function editUrl(
   id: string,
   ext: string,
 ): string | undefined {
-  if (!repo) return undefined;
+  if (isPlaceholderRepo(repo)) return undefined;
   const slug = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$|\/$/, '');
   return `https://github.com/${slug}/edit/${branch}/${contentPath}/${id}${ext}`;
 }
