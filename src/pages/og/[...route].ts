@@ -27,6 +27,7 @@ const route = await OGImageRoute({
   getImageOptions: (_path, page: { title: string; description: string }) => ({
     title: page.title,
     description: page.description,
+    ...(wiki.ogImage.logo ? { logo: wiki.ogImage.logo } : {}),
     bgGradient: wiki.ogImage.bgGradient,
     border: { color: wiki.ogImage.border, width: 20, side: 'inline-start' },
     padding: 80,

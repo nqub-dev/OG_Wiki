@@ -35,7 +35,10 @@ const backlinks = wiki.features.backlinks ? await getBacklinks(doc.id) : [];
 const status = statusStyle(doc.data.status);
 const updated = formatDate(doc.data.updated);
 const crumbs = breadcrumbsFor(doc);
-const editUrl = wiki.editBase ? `${wiki.editBase}/${doc.id}.md` : undefined;
+// Take the extension from the real file — .md and .mdx pages coexist, and a
+// hardcoded '.md' produces a 404 for every MDX page.
+const ext = doc.filePath?.match(/\.mdx?$/)?.[0] ?? '.md';
+const editUrl = wiki.editBase ? `${wiki.editBase}/${doc.id}${ext}` : undefined;
 const knownIds = [...(await getKnownIds())];
 ---
 

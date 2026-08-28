@@ -3,6 +3,7 @@ import wiki from '../../wiki.config';
 import Search from './Search.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import { homeUrl, url } from '../lib/links';
+import Logo from './Logo.astro';
 ---
 
 <header
@@ -26,12 +27,26 @@ import { homeUrl, url } from '../lib/links';
       </svg>
     </label>
 
-    <a href={homeUrl()} class="btn btn-ghost btn-sm gap-2 px-2 text-base font-bold">
-      <span
-        class="bg-primary text-primary-content grid size-7 place-items-center rounded-lg text-sm"
-        aria-hidden="true">{wiki.mark}</span
-      >
-      <span class="hidden sm:inline">{wiki.name}</span>
+    <a
+      href={homeUrl()}
+      class="btn btn-ghost btn-sm gap-2 px-2 text-base font-bold"
+      aria-label={`${wiki.name} home`}
+    >
+      {
+        wiki.useLogo ? (
+          <Logo class="h-5 w-auto sm:h-6" />
+        ) : (
+          <>
+            <span
+              class="bg-primary text-primary-content grid size-7 place-items-center rounded-lg text-sm"
+              aria-hidden="true"
+            >
+              {wiki.mark}
+            </span>
+            <span class="hidden sm:inline">{wiki.name}</span>
+          </>
+        )
+      }
     </a>
   </div>
 

@@ -23,6 +23,11 @@ export interface WikiConfig {
   tagline: string;
   /** Emoji or single character used as the logo mark. */
   mark: string;
+  /**
+   * Render the SVG wordmark from src/components/Logo.astro instead of the
+   * `mark` emoji. Swap that component's paths to re-brand.
+   */
+  useLogo: boolean;
   /** Longer description for SEO / social cards. */
   description: string;
   /**
@@ -47,6 +52,11 @@ export interface WikiConfig {
     tags: boolean;
     lastUpdated: boolean;
   };
+  /**
+   * Path to a favicon in public/, e.g. '/favicon.png'.
+   * Leave '' to fall back to an emoji favicon built from `mark`.
+   */
+  favicon: string;
   /** Base URL for "Edit this page" links. Set to '' to disable. */
   editBase: string;
   /** Auto-generated social share images (Open Graph / Twitter cards). */
@@ -56,6 +66,8 @@ export interface WikiConfig {
     bgGradient: [number, number, number][];
     /** Accent bar colour, RGB triplet. */
     border: [number, number, number];
+    /** Optional logo drawn on the card. Path is relative to the project root. */
+    logo?: { path: string; size?: [number, number?] };
   };
 }
 
@@ -65,6 +77,7 @@ export const wiki: WikiConfig = {
   name: 'OG Wiki',
   tagline: 'The knowledge base your team will actually read.',
   mark: '◆',
+  useLogo: true,
   description:
     'A fast, beautiful, modular wiki template built with Astro, Tailwind CSS 4 and daisyUI 5.',
 
@@ -135,6 +148,7 @@ export const wiki: WikiConfig = {
     lastUpdated: true,
   },
 
+  favicon: '/favicon.png',
   editBase: 'https://github.com/your-org/your-wiki/edit/main/src/content/docs',
 
   ogImage: {
@@ -144,7 +158,8 @@ export const wiki: WikiConfig = {
       [23, 26, 41],
       [46, 41, 96],
     ],
-    border: [124, 108, 246],
+    border: [241, 107, 36],
+    logo: { path: './src/assets/nqub-wordmark-white.png', size: [180] },
   },
 };
 

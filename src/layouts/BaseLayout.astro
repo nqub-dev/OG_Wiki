@@ -43,10 +43,16 @@ const ogImage =
     {ogImage && <meta property="og:image:height" content="630" />}
     <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
-    <link
-      rel="icon"
-      href={`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="26" font-size="26">${encodeURIComponent(wiki.mark)}</text></svg>`}
-    />
+    {
+      wiki.favicon ? (
+        <link rel="icon" href={url(wiki.favicon)} />
+      ) : (
+        <link
+          rel="icon"
+          href={`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="26" font-size="26">${encodeURIComponent(wiki.mark)}</text></svg>`}
+        />
+      )
+    }
 
     {/* Apply the stored theme before first paint to avoid a flash. */}
     <script is:inline define:vars={{ fallback: wiki.themes.light }}>

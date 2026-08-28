@@ -1,14 +1,23 @@
 ---
 import wiki from '../../wiki.config';
 import { url } from '../lib/links';
+import Logo from './Logo.astro';
 ---
 
 <footer class="footer bg-base-200 border-base-300 text-base-content border-t p-8 lg:px-12">
   <aside>
-    <span class="bg-primary text-primary-content grid size-9 place-items-center rounded-xl"
-      >{wiki.mark}</span
-    >
-    <p class="font-semibold">{wiki.name}</p>
+    {
+      wiki.useLogo ? (
+        <Logo class="h-8 w-auto" />
+      ) : (
+        <>
+          <span class="bg-primary text-primary-content grid size-9 place-items-center rounded-xl">
+            {wiki.mark}
+          </span>
+          <p class="font-semibold">{wiki.name}</p>
+        </>
+      )
+    }
     <p class="text-base-content/60 max-w-xs text-sm">{wiki.tagline}</p>
   </aside>
 
