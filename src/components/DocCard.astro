@@ -1,0 +1,44 @@
+---
+import type { Doc } from '../lib/content';
+import { statusStyle } from '../lib/content';
+import { docUrl } from '../lib/links';
+
+interface Props {
+  doc: Doc;
+}
+
+const { doc } = Astro.props;
+const status = statusStyle(doc.data.status);
+---
+
+<a
+  href={docUrl(doc.id)}
+  class="card card-border bg-base-100 border-base-300 hover:border-primary group h-full transition-all hover:-translate-y-0.5 hover:shadow-lg"
+>
+  <div class="card-body gap-2 p-5">
+    <div class="flex items-start justify-between gap-2">
+      <span class="text-2xl" aria-hidden="true">{doc.data.icon}</span>
+      <span class:list={['badge badge-sm badge-soft', status.badge]}>{status.label}</span>
+    </div>
+
+    <h3 class="card-title group-hover:text-primary text-base transition-colors">
+      {doc.data.title}
+    </h3>
+
+    {
+      doc.data.description && (
+        <p class="text-base-content/65 line-clamp-2 text-sm">{doc.data.description}</p>
+      )
+    }
+
+    {
+      doc.data.tags.length > 0 && (
+        <div class="card-actions mt-auto pt-2">
+          {doc.data.tags.slice(0, 3).map((tag) => (
+            <span class="badge badge-ghost badge-sm">#{tag}</span>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</a>

@@ -1,0 +1,164 @@
+---
+import { render } from 'astro:content';
+import wiki from '../../../wiki.config';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Toc from '../../components/Toc.astro';
+import PageNav from '../../components/PageNav.astro';
+import Backlinks from '../../components/Backlinks.astro';
+import Callout from '../../components/mdx/Callout.astro';
+import CardGrid from '../../components/mdx/CardGrid.astro';
+import LinkCard from '../../components/mdx/LinkCard.astro';
+import Steps from '../../components/mdx/Steps.astro';
+import Tabs from '../../components/mdx/Tabs.astro';
+import {
+  getDocs,
+  getSiblings,
+  getBacklinks,
+  getKnownIds,
+  breadcrumbsFor,
+  statusStyle,
+  formatDate,
+} from '../../lib/content';
+import { tagUrl } from '../../lib/links';
+
+export async function getStaticPaths() {
+  const docs = await getDocs();
+  return docs.map((doc) => ({ params: { slug: doc.id }, props: { doc } }));
+}
+
+const { doc } = Astro.props;
+const { Content, headings } = await render(doc);
+
+const { prev, next } = await getSiblings(doc.id);
+const backlinks = wiki.features.backlinks ? await getBacklinks(doc.id) : [];
+const status = statusStyle(doc.data.status);
+const updated = formatDate(doc.data.updated);
+const crumbs = breadcrumbsFor(doc);
+const editUrl = wiki.editBase ? `${wiki.editBase}/${doc.id}.md` : undefined;
+const knownIds = [...(await getKnownIds())];
+---
+
+<BaseLayout
+  title={doc.data.title}
+  description={doc.data.description}
+  current={doc.id}
+  ogId={doc.id}
+>
+  <div class="mx-auto flex w-full max-w-7xl gap-8 px-4 py-8 lg:px-8">
+    <!-- Article column -->
+    <article class="min-w-0 flex-1" data-pagefind-body data-pagefind-meta={`icon:${doc.data.icon}`}>
+      <Breadcrumbs crumbs={crumbs} />
+
+      <header class="border-base-300 mt-3 mb-8 border-b pb-6">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="badge badge-ghost badge-sm" data-pagefind-filter="section">
+            {doc.data.section}
+          </span>
+          <span
+            class:list={['badge badge-sm badge-soft', status.badge]}
+            data-pagefind-filter="status"
+          >
+            {status.label}
+          </span>
+          {
+            doc.data.tags.map((tag) => (
+              <a
+                href={tagUrl(tag)}
+                class="badge badge-outline badge-sm hover:badge-primary"
+                data-pagefind-filter={`tag:${tag}`}
+              >
+                #{tag}
+              </a>
+            ))
+          }
+        </div>
+
+        <h1 class="flex items-start gap-3 text-3xl font-bold tracking-tight sm:text-4xl">
+          <span aria-hidden="true">{doc.data.icon}</span>
+          <span>{doc.data.title}</span>
+        </h1>
+
+        {
+          doc.data.description && (
+            <p class="text-base-content/70 mt-3 text-lg">{doc.data.description}</p>
+          )
+        }
+
+        <div class="text-base-content/50 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          {doc.data.owner && <span>Owner · {doc.data.owner}</span>}
+          {wiki.features.lastUpdated && updated && <span>Updated · {updated}</span>}
+          {
+            wiki.features.editLinks && editUrl && (
+              <a
+                href={editUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="link link-hover flex items-center gap-1"
+              >
+                <svg
+                  class="size-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="M4 20h4L20 8l-4-4L4 16z" />
+                </svg>
+                Edit this page
+              </a>
+            )
+          }
+        </div>
+      </header>
+
+      <!-- Mobile TOC: collapses out of the way, mirrors Wikipedia's Vector 2022 -->
+      {
+        wiki.features.tableOfContents && headings.length > 0 && (
+          <details class="collapse-arrow bg-base-200 border-base-300 collapse mb-8 border xl:hidden">
+            <summary class="collapse-title text-sm font-semibold">On this page</summary>
+            <div class="collapse-content">
+              <ul class="menu menu-sm w-full">
+                {headings
+                  .filter((h) => h.depth === 2 || h.depth === 3)
+                  .map((h) => (
+                    <li>
+                      <a href={`#${h.slug}`} class:list={[h.depth === 3 && 'ml-3']}>
+                        {h.text}
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </details>
+        )
+      }
+
+      <div class="prose prose-slate dark:prose-invert max-w-none">
+        <Content components={{ Callout, CardGrid, LinkCard, Steps, Tabs }} />
+      </div>
+
+      {wiki.features.backlinks && <Backlinks docs={backlinks} />}
+      <PageNav prev={prev} next={next} />
+    </article>
+
+    <!-- Right rail: persistent TOC (Wikipedia Vector 2022 pattern) -->
+    {
+      wiki.features.tableOfContents && (
+        <div class="hidden w-56 shrink-0 xl:block">
+          <Toc headings={headings} />
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<script is:inline define:vars={{ knownIds }}>
+  // Flag wikilinks whose target page does not exist yet (Obsidian's
+  // "unresolved link"). The id list is baked in at build time.
+  const known = new Set(knownIds);
+  document.querySelectorAll('a[data-wikilink]').forEach((link) => {
+    if (!known.has(link.dataset.wikilink)) link.classList.add('wikilink-new');
+  });
+</script>

@@ -1,0 +1,56 @@
+---
+import type { Doc } from '../lib/content';
+import { docUrl } from '../lib/links';
+
+interface Props {
+  docs: Doc[];
+}
+
+const { docs } = Astro.props;
+---
+
+<section class="mt-12" aria-labelledby="backlinks-heading">
+  <h2 id="backlinks-heading" class="mb-3 flex items-center gap-2 text-sm font-semibold">
+    <svg
+      class="size-4 opacity-60"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path>
+      <path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path>
+    </svg>
+    Linked from
+    <span class="badge badge-ghost badge-sm">{docs.length}</span>
+  </h2>
+
+  {
+    docs.length > 0 ? (
+      <ul class="list bg-base-200 rounded-box">
+        {docs.map((doc) => (
+          <li class="list-row hover:bg-base-300 items-center transition-colors">
+            <span class="text-lg" aria-hidden="true">
+              {doc.data.icon}
+            </span>
+            <div class="list-col-grow">
+              <a href={docUrl(doc.id)} class="link link-hover font-medium">
+                {doc.data.title}
+              </a>
+              {doc.data.description && (
+                <p class="text-base-content/60 line-clamp-1 text-xs">{doc.data.description}</p>
+              )}
+            </div>
+            <span class="badge badge-ghost badge-sm hidden sm:inline-flex">{doc.data.section}</span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="text-base-content/50 text-sm italic">
+        No other page links here yet. Add <code class="text-xs">[[this-page]]</code> somewhere to
+        connect it.
+      </p>
+    )
+  }
+</section>

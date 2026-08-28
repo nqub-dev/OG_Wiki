@@ -1,0 +1,28 @@
+---
+interface Props {
+  title: string;
+  href: string;
+  icon?: string;
+  description?: string;
+}
+
+import { url } from '../../lib/links';
+
+const { title, href, icon = '→', description } = Astro.props;
+const external = href.startsWith('http');
+---
+
+<a
+  href={url(href)}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+  class="card card-border bg-base-100 border-base-300 hover:border-primary group no-underline transition-all hover:-translate-y-0.5 hover:shadow-md"
+>
+  <div class="card-body gap-1 p-4">
+    <h3 class="flex items-center gap-2 text-sm font-semibold">
+      <span aria-hidden="true">{icon}</span>
+      <span class="group-hover:text-primary transition-colors">{title}</span>
+    </h3>
+    {description && <p class="text-base-content/65 text-sm">{description}</p>}
+  </div>
+</a>

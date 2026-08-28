@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Type-check, lint links, build, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Types and content schema
+        run: npm run check
+
+      - name: Broken internal links
+        run: npm run check:links -- --strict
+
+      # Builds the site AND the Pagefind index. Never replace this with
+      # `astro build` alone — search would silently return nothing.
+      - name: Build
+        run: npm run build
+
+      - name: Accessibility smoke test
+        run: npm run check:a11y -- --strict
+
+      - name: Placeholder audit (advisory on CI)
+        run: npm run preflight

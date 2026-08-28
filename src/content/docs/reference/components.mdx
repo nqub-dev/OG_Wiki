@@ -1,0 +1,133 @@
+---
+title: Component gallery
+description: Every authoring component, rendered, with the source beside it.
+icon: 🧩
+section: Reference
+order: 1
+tags: [authoring, components, reference]
+status: stable
+updated: 2026-08-26
+owner: Platform Team
+---
+
+Everything below is real daisyUI 5 markup. Switch themes from the navbar and
+watch every component follow along — nothing here hardcodes a colour.
+
+## Callouts
+
+<Callout type="note">Neutral context that's useful but not urgent.</Callout>
+<Callout type="tip" title="Do this">
+  The recommended path.
+</Callout>
+<Callout type="warning" title="Careful">
+  Something that commonly goes wrong.
+</Callout>
+<Callout type="danger" title="Stop">
+  Destructive or irreversible.
+</Callout>
+
+```mdx
+<Callout type="tip" title="Do this">
+  The recommended path.
+</Callout>
+```
+
+Types: `note` (default), `tip`, `warning`, `danger`. `title` is optional.
+
+## Card grid
+
+<CardGrid cols={3}>
+  <LinkCard title="Welcome" href="/wiki/start-here/welcome" icon="👋" description="Orientation." />
+  <LinkCard
+    title="Architecture"
+    href="/wiki/engineering/architecture"
+    icon="🏗️"
+    description="How it's built."
+  />
+  <LinkCard
+    title="Runbook"
+    href="/wiki/operations/runbook"
+    icon="🚨"
+    description="When it breaks."
+  />
+</CardGrid>
+
+```mdx
+<CardGrid cols={3}>
+  <LinkCard title="Welcome" href="/wiki/start-here/welcome" icon="👋" description="Orientation." />
+</CardGrid>
+```
+
+`cols` accepts `2` (default) or `3`.
+
+## Tabs
+
+<Tabs labels={['macOS', 'Linux', 'Windows']}>
+<Fragment slot="tab-0">
+
+```bash
+brew install node
+```
+
+</Fragment>
+<Fragment slot="tab-1">
+
+```bash
+sudo apt install nodejs
+```
+
+</Fragment>
+<Fragment slot="tab-2">
+
+```powershell
+winget install OpenJS.NodeJS
+```
+
+</Fragment>
+</Tabs>
+
+```mdx
+<Tabs labels={['macOS', 'Linux']}>
+  <Fragment slot="tab-0">macOS instructions</Fragment>
+  <Fragment slot="tab-1">Linux instructions</Fragment>
+</Tabs>
+```
+
+CSS-only — no JavaScript ships for these.
+
+## Steps
+
+<Steps>
+
+1. Clone the template.
+2. Edit `wiki.config.ts`.
+3. Replace the contents of `src/content/docs/`.
+4. Deploy the `dist/` folder anywhere static.
+
+</Steps>
+
+```mdx
+<Steps>
+
+1. First thing
+2. Second thing
+
+</Steps>
+```
+
+<Callout type="note" title="Blank lines matter">
+  Leave an empty line after `<Steps>` and before `</Steps>` so MDX parses the list as Markdown
+  rather than raw JSX.
+</Callout>
+
+## Plain Markdown still works
+
+> Blockquotes, `inline code`, **bold**, [links](/wiki/start-here/welcome), and tables
+> all pick up the active theme's colours.
+
+| Feature      | Ships JS | Themed |
+| ------------ | -------- | ------ |
+| Callout      | No       | Yes    |
+| Tabs         | No       | Yes    |
+| Search       | On open  | Yes    |
+| Theme picker | 1 KB     | —      |

@@ -1,0 +1,160 @@
+---
+import wiki from '../../wiki.config';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DocCard from '../components/DocCard.astro';
+import { getDocs, getNav, getTags, slugify, formatDate } from '../lib/content';
+import { docUrl, tagUrl } from '../lib/links';
+
+const docs = await getDocs();
+const nav = await getNav();
+const tags = await getTags();
+
+const featured = docs.filter((doc) => doc.data.featured).slice(0, 3);
+const recent = [...docs]
+  .filter((doc) => doc.data.updated)
+  .sort((a, b) => (b.data.updated!.getTime() ?? 0) - (a.data.updated!.getTime() ?? 0))
+  .slice(0, 5);
+const needsWork = docs.filter((doc) => doc.data.status === 'draft' || doc.data.status === 'review');
+---
+
+<BaseLayout>
+  <div class="mx-auto w-full max-w-6xl px-4 py-10 lg:px-8">
+    <!-- Hero -->
+    <section class="mb-12">
+      <div class="badge badge-primary badge-soft badge-sm mb-4">
+        {docs.length} pages · always current
+      </div>
+      <h1 class="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
+        {wiki.name}
+      </h1>
+      <p class="text-base-content/70 mt-4 max-w-2xl text-lg text-pretty">{wiki.tagline}</p>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        {
+          docs[0] && (
+            <a href={docUrl(docs[0].id)} class="btn btn-primary">
+              Start reading
+              <svg
+                class="size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                aria-hidden="true"
+              >
+                <path d="m9 5 7 7-7 7" />
+              </svg>
+            </a>
+          )
+        }
+        <button class="btn btn-ghost" data-search-open>
+          Search
+          <kbd class="kbd kbd-sm">⌘K</kbd>
+        </button>
+      </div>
+    </section>
+
+    <!-- At-a-glance stats -->
+    <section class="mb-12">
+      <div
+        class="stats stats-vertical sm:stats-horizontal bg-base-200 border-base-300 w-full border"
+      >
+        <div class="stat">
+          <div class="stat-title">Pages</div>
+          <div class="stat-value text-primary text-3xl">{docs.length}</div>
+          <div class="stat-desc">across {nav.length} sections</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Tags</div>
+          <div class="stat-value text-secondary text-3xl">{tags.length}</div>
+          <div class="stat-desc">
+            <a href={tagUrl()} class="link link-hover">browse all →</a>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Needs attention</div>
+          <div class="stat-value text-3xl">{needsWork.length}</div>
+          <div class="stat-desc">draft or in review</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured -->
+    {
+      featured.length > 0 && (
+        <section class="mb-12">
+          <h2 class="mb-4 text-lg font-semibold">Featured</h2>
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((doc) => (
+              <DocCard doc={doc} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- Browse by section: a compact index, so it complements the featured
+         cards above instead of repeating them. -->
+    <section class="mb-12">
+      <h2 class="mb-4 text-lg font-semibold">Browse by section</h2>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          nav.map((section) => (
+            <div
+              class="card card-border bg-base-100 border-base-300 h-full"
+              id={slugify(section.heading)}
+            >
+              <div class="card-body gap-3 p-5">
+                <div class="flex items-baseline justify-between gap-2">
+                  <h3 class="text-sm font-semibold tracking-wide uppercase">{section.heading}</h3>
+                  <span class="badge badge-ghost badge-sm">{section.items.length}</span>
+                </div>
+                <ul class="menu menu-sm w-full gap-0.5 p-0">
+                  {section.items.map((item) => (
+                    <li>
+                      <a href={item.href} class="gap-2">
+                        <span aria-hidden="true">{item.icon}</span>
+                        <span class="flex-1 truncate">{item.title}</span>
+                        {item.status === 'draft' && (
+                          <span class="badge badge-warning badge-xs">WIP</span>
+                        )}
+                        {item.status === 'review' && (
+                          <span class="badge badge-info badge-xs">review</span>
+                        )}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Recently updated -->
+    {
+      recent.length > 0 && (
+        <section class="mb-4">
+          <h2 class="mb-4 text-lg font-semibold">Recently updated</h2>
+          <ul class="list bg-base-200 border-base-300 rounded-box border">
+            {recent.map((doc) => (
+              <li class="list-row hover:bg-base-300 items-center transition-colors">
+                <span class="text-lg" aria-hidden="true">
+                  {doc.data.icon}
+                </span>
+                <div class="list-col-grow">
+                  <a href={docUrl(doc.id)} class="link link-hover font-medium">
+                    {doc.data.title}
+                  </a>
+                  <p class="text-base-content/55 text-xs">{doc.data.section}</p>
+                </div>
+                <time class="text-base-content/50 text-xs">{formatDate(doc.data.updated)}</time>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>

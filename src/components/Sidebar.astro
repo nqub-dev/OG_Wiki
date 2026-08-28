@@ -1,0 +1,107 @@
+---
+import wiki from '../../wiki.config';
+import { getNav } from '../lib/content';
+import { homeUrl, tagUrl } from '../lib/links';
+
+interface Props {
+  current?: string;
+}
+
+const { current } = Astro.props;
+const nav = await getNav();
+const total = nav.reduce((sum, section) => sum + section.items.length, 0);
+---
+
+<aside
+  class="bg-base-200 border-base-300 flex h-full w-72 flex-col border-r"
+  aria-label="Wiki navigation"
+>
+  <div class="border-base-300 flex items-center gap-2 border-b px-4 py-3 lg:hidden">
+    <span class="bg-primary text-primary-content grid size-7 place-items-center rounded-lg text-sm"
+      >{wiki.mark}</span
+    >
+    <span class="font-bold">{wiki.name}</span>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto p-3">
+    <ul class="menu menu-sm w-full gap-0.5">
+      <li>
+        <a href={homeUrl()} class:list={[current === undefined && 'menu-active']}>
+          <svg
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path>
+          </svg>
+          Home
+        </a>
+      </li>
+
+      {
+        nav.map((section) => (
+          <li>
+            <details open>
+              <summary class="text-base-content/60 px-2 text-xs font-semibold tracking-wide uppercase">
+                {section.heading}
+                <span class="badge badge-ghost badge-xs ml-auto">{section.items.length}</span>
+              </summary>
+              <ul class="gap-0.5">
+                {section.items.map((item) => (
+                  <li>
+                    <a
+                      href={item.href}
+                      class:list={['gap-2', current === item.id && 'menu-active']}
+                      aria-current={current === item.id ? 'page' : undefined}
+                    >
+                      <span aria-hidden="true">{item.icon}</span>
+                      <span class="flex-1 truncate">{item.title}</span>
+                      {item.status === 'draft' && (
+                        <span class="badge badge-warning badge-xs" title="Draft">
+                          WIP
+                        </span>
+                      )}
+                      {item.status === 'deprecated' && (
+                        <span class="badge badge-error badge-xs" title="Deprecated">
+                          old
+                        </span>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </li>
+        ))
+      }
+
+      {
+        wiki.features.tags && (
+          <li class="mt-2">
+            <a href={tagUrl()}>
+              <svg
+                class="size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M3 3h8l10 10-8 8L3 11z" />
+                <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
+              </svg>
+              Browse by tag
+            </a>
+          </li>
+        )
+      }
+    </ul>
+  </nav>
+
+  <div class="border-base-300 text-base-content/50 border-t px-4 py-3 text-xs">
+    {total} pages · <a class="link link-hover" href={tagUrl()}>tags</a>
+  </div>
+</aside>

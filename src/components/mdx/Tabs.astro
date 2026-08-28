@@ -1,0 +1,32 @@
+---
+/**
+ * CSS-only tabs using daisyUI's `tabs tabs-lift` + radio inputs.
+ * No JavaScript, works with view transitions, keyboard accessible.
+ *
+ *   <Tabs labels={['npm', 'pnpm']}>
+ *     <Fragment slot="tab-0">…</Fragment>
+ *     <Fragment slot="tab-1">…</Fragment>
+ *   </Tabs>
+ */
+interface Props {
+  labels: string[];
+  name?: string;
+}
+
+const { labels, name = `tabs-${Math.random().toString(36).slice(2, 8)}` } = Astro.props;
+---
+
+<div class="tabs tabs-lift not-prose my-6">
+  {
+    labels.map((label, index) => (
+      <>
+        <input type="radio" name={name} class="tab" aria-label={label} checked={index === 0} />
+        <div class="tab-content bg-base-100 border-base-300 p-4 text-sm">
+          <div class="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <slot name={`tab-${index}`} />
+          </div>
+        </div>
+      </>
+    ))
+  }
+</div>

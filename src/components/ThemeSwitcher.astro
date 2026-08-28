@@ -1,0 +1,83 @@
+---
+import wiki from '../../wiki.config';
+
+const themes = wiki.themes.palette;
+---
+
+<div class="dropdown dropdown-end">
+  <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1" aria-label="Change theme">
+    <svg
+      class="size-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"></path>
+    </svg>
+    <span class="hidden sm:inline">Theme</span>
+    <svg class="size-3 opacity-60" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+      <path d="M6 8.5 1.5 4h9z"></path>
+    </svg>
+  </div>
+
+  <ul
+    tabindex="0"
+    class="dropdown-content bg-base-200 rounded-box z-50 mt-2 max-h-96 w-56 overflow-y-auto p-2 shadow-2xl"
+  >
+    <li class="menu-title text-xs">Appearance</li>
+    {
+      themes.map((theme) => (
+        <li>
+          <label
+            class="btn btn-ghost btn-sm btn-block justify-start gap-3 font-normal"
+            data-theme-option={theme}
+          >
+            <input
+              type="radio"
+              name="theme-picker"
+              class="theme-controller sr-only"
+              value={theme}
+            />
+            <span class="grid grid-cols-2 gap-0.5 rounded-sm" data-theme={theme}>
+              <span class="bg-primary size-2 rounded-xs" />
+              <span class="bg-secondary size-2 rounded-xs" />
+              <span class="bg-accent size-2 rounded-xs" />
+              <span class="bg-neutral size-2 rounded-xs" />
+            </span>
+            <span class="flex-1 text-left">{theme}</span>
+            <span class="badge badge-primary badge-xs hidden" data-theme-check />
+          </label>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<script>
+  const STORAGE_KEY = 'og-wiki-theme';
+
+  function paint(theme: string) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll<HTMLElement>('[data-theme-option]').forEach((label) => {
+      const active = label.dataset.themeOption === theme;
+      label.querySelector('[data-theme-check]')?.classList.toggle('hidden', !active);
+      const input = label.querySelector<HTMLInputElement>('input.theme-controller');
+      if (input) input.checked = active;
+    });
+  }
+
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) paint(stored);
+
+  document.querySelectorAll<HTMLInputElement>('input.theme-controller').forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!input.checked) return;
+      localStorage.setItem(STORAGE_KEY, input.value);
+      paint(input.value);
+      (document.activeElement as HTMLElement | null)?.blur();
+    });
+  });
+</script>

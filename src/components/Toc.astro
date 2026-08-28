@@ -1,0 +1,71 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+// h2/h3 only — deeper nesting turns the rail into noise.
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{
+  items.length > 0 && (
+    <nav class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto" aria-label="On this page">
+      <h2 class="text-base-content/60 mb-2 px-3 text-xs font-semibold tracking-wide uppercase">
+        On this page
+      </h2>
+      <ul class="menu menu-xs w-full gap-0.5" id="toc">
+        {items.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              data-toc-link={heading.slug}
+              class:list={[heading.depth === 3 && 'ml-3']}
+            >
+              <span class="truncate">{heading.text}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  const links = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]').forEach((link) => {
+    links.set(link.dataset.tocLink!, link);
+  });
+
+  if (links.size) {
+    const visible = new Set<string>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        }
+
+        // Highlight the first heading currently in the reading zone.
+        let active: string | undefined;
+        for (const id of links.keys()) {
+          if (visible.has(id)) {
+            active = id;
+            break;
+          }
+        }
+
+        links.forEach((link, id) => link.classList.toggle('menu-active', id === active));
+      },
+      { rootMargin: '-88px 0px -70% 0px', threshold: 0 },
+    );
+
+    links.forEach((_, id) => {
+      const heading = document.getElementById(id);
+      if (heading) observer.observe(heading);
+    });
+  }
+</script>

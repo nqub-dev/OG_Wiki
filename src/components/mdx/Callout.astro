@@ -1,0 +1,30 @@
+---
+interface Props {
+  type?: 'note' | 'tip' | 'warning' | 'danger';
+  title?: string;
+}
+
+const { type = 'note', title } = Astro.props;
+
+const styles = {
+  note: { cls: 'alert-info', icon: 'i', label: 'Note' },
+  tip: { cls: 'alert-success', icon: '★', label: 'Tip' },
+  warning: { cls: 'alert-warning', icon: '!', label: 'Warning' },
+  danger: { cls: 'alert-error', icon: '×', label: 'Danger' },
+} as const;
+
+const style = styles[type];
+---
+
+<div class:list={['alert alert-soft alert-vertical not-prose my-6 items-start', style.cls]}>
+  <div class="flex w-full items-center gap-2">
+    <span
+      class="grid size-5 shrink-0 place-items-center rounded-full border border-current/40 text-xs font-bold"
+      aria-hidden="true">{style.icon}</span
+    >
+    <span class="font-semibold">{title ?? style.label}</span>
+  </div>
+  <div class="text-base-content/85 w-full text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+    <slot />
+  </div>
+</div>

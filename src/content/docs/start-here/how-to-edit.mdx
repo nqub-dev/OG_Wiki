@@ -1,0 +1,109 @@
+---
+title: How to edit
+description: Create a page, link it up, and publish — in about two minutes.
+icon: ✍️
+section: Start Here
+order: 2
+tags: [orientation, authoring]
+status: stable
+updated: 2026-08-26
+owner: Platform Team
+featured: true
+---
+
+<Callout type="tip" title="No build step to learn">
+  Pages are plain Markdown. If you can write a README, you can write here.
+</Callout>
+
+## Create a page
+
+<Steps>
+
+1. Add a file at `src/content/docs/<section>/<name>.md`.
+
+2. Give it frontmatter — only `title` is required:
+
+   ```yaml
+   ---
+   title: Deploy checklist
+   description: What to verify before shipping to production.
+   icon: 🚀
+   section: Operations
+   order: 3
+   tags: [deploy, checklist]
+   status: stable
+   updated: 2026-08-26
+   owner: Ana Ruiz
+   ---
+   ```
+
+3. Write your content. Save. The dev server reloads and the sidebar already has it.
+
+</Steps>
+
+## Link between pages
+
+Two syntaxes work, and both feed the backlink graph:
+
+<Tabs labels={['Wikilinks', 'Markdown links']}>
+<Fragment slot="tab-0">
+
+```md
+[[operations/runbook]]
+[[operations/runbook|the on-call runbook]]
+[[operations/runbook#escalation]]
+```
+
+Links to a page that doesn't exist yet render in red — a built-in list of pages
+worth writing.
+
+</Fragment>
+<Fragment slot="tab-1">
+
+```md
+[the on-call runbook](/wiki/operations/runbook)
+```
+
+Use these when you want the link text to differ a lot from the page title, or
+when linking outside the wiki.
+
+</Fragment>
+</Tabs>
+
+## Mark a page's state
+
+`status` drives a badge in the sidebar, the page header, and the home page counter:
+
+| Value        | Shows as   | Use when                          |
+| ------------ | ---------- | --------------------------------- |
+| `stable`     | Stable     | Content is trusted and current    |
+| `review`     | In review  | Written, awaiting a check         |
+| `draft`      | Draft      | Incomplete — visible but flagged  |
+| `deprecated` | Deprecated | Kept for history; don't act on it |
+
+Add `draft: true` to hide a page from production entirely while keeping it
+visible in `npm run dev`.
+
+## Rich components
+
+MDX pages (`.mdx`) can use the component library without importing anything:
+
+<CardGrid>
+  <LinkCard
+    title="Component gallery"
+    href="/wiki/reference/components"
+    icon="🧩"
+    description="Every callout, tab set, card and stepper, with source."
+  />
+  <LinkCard
+    title="Frontmatter reference"
+    href="/wiki/reference/frontmatter"
+    icon="📋"
+    description="Every field the schema accepts and what it controls."
+  />
+</CardGrid>
+
+<Callout type="warning" title="Markdown vs MDX">
+  Components only work in `.mdx` files. Plain `.md` pages still get tables, code highlighting,
+  wikilinks and everything else — they just can't use JSX.
+</Callout>

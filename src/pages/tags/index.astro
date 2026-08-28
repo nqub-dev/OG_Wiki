@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getTags } from '../../lib/content';
+import { homeUrl, tagUrl } from '../../lib/links';
+
+const tags = await getTags();
+const max = Math.max(1, ...tags.map((t) => t.count));
+---
+
+<BaseLayout title="Tags" description="Browse every page in the wiki by tag.">
+  <div class="mx-auto w-full max-w-4xl px-4 py-10 lg:px-8">
+    <Breadcrumbs
+      crumbs={[
+        { label: 'Wiki', href: homeUrl() },
+        { label: 'Tags', href: tagUrl() },
+      ]}
+    />
+
+    <h1 class="mt-3 text-3xl font-bold tracking-tight">Tags</h1>
+    <p class="text-base-content/70 mt-2">
+      {tags.length} tags across the wiki. Bigger badge means more pages.
+    </p>
+
+    <div class="mt-8 flex flex-wrap gap-2">
+      {
+        tags.map(({ tag, count }) => (
+          <a
+            href={tagUrl(tag)}
+            class:list={[
+              'badge hover:badge-primary gap-2 transition-colors',
+              count === max ? 'badge-lg badge-primary' : count > max / 2 ? 'badge-lg' : 'badge-md',
+            ]}
+          >
+            #{tag}
+            <span class="opacity-60">{count}</span>
+          </a>
+        ))
+      }
+    </div>
+
+    {tags.length === 0 && <p class="text-base-content/50 mt-8 italic">No tags yet.</p>}
+  </div>
+</BaseLayout>

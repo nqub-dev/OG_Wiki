@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { homeUrl } from '../lib/links';
+---
+
+<BaseLayout title="Page not found">
+  <div class="hero min-h-[60vh]">
+    <div class="hero-content text-center">
+      <div class="max-w-md">
+        <p class="text-primary text-6xl font-bold">404</p>
+        <h1 class="mt-4 text-2xl font-bold">This page hasn't been written yet</h1>
+        <p class="text-base-content/70 mt-3">
+          In a wiki that's not a bug — it's a to-do. Search for what you need, or create the page.
+        </p>
+        <div class="mt-6 flex justify-center gap-3">
+          <a href={homeUrl()} class="btn btn-primary">Back home</a>
+          <button class="btn btn-ghost" data-search-open>
+            Search
+            <kbd class="kbd kbd-sm">⌘K</kbd>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
