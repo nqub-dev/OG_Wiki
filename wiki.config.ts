@@ -80,9 +80,9 @@ export interface WikiConfig {
 }
 
 export const wiki: WikiConfig = {
-  site: 'https://wiki.example.com',
+  site: 'https://wiki.nqub.com',
   base: '/',
-  name: 'OG Wiki',
+  name: 'nqub Wiki',
   tagline: 'The knowledge base your team will actually read.',
   mark: '◆',
   useLogo: true,
