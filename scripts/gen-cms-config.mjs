@@ -28,9 +28,14 @@ backend:
   name: github
   repo: ${repo || 'your-org/your-wiki'}
   branch: ${branch}
-  # Browsers cannot complete a GitHub OAuth flow alone. base_url points at the
-  # sveltia-cms-auth Worker (see CONTRIBUTING.md) which holds the client secret.
-  base_url: https://YOUR-AUTH-WORKER.workers.dev
+  # No base_url on purpose. Sveltia CMS falls back to Netlify's built-in OAuth
+  # client when authentication isn't configured explicitly, which is exactly
+  # what we want since this site is hosted on Netlify — no Cloudflare Worker,
+  # no client secret to manage.
+  #
+  # If this wiki ever moves off Netlify, deploy sveltia-cms-auth as a Cloudflare
+  # Worker and point base_url at it:
+  #   base_url: https://sveltia-cms-auth.<subdomain>.workers.dev
 
 # Editors upload images here; Markdown references them from public_folder.
 media_folder: public/uploads

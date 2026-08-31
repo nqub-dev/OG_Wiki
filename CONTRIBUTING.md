@@ -25,14 +25,16 @@ Go to **`/admin`** on the wiki. That's a visual editor — a form for the page
 settings, a rich text area for the body, and drag-and-drop for images. Saving
 publishes through the same review process as everything else.
 
-> **Setup note for whoever installs this:** `/admin` needs a one-time OAuth
-> helper before anyone can sign in. A browser can't complete GitHub's OAuth flow
-> on its own, because that requires a client secret that must never ship to the
-> browser. Deploy the `sveltia-cms-auth` Worker to Cloudflare, register a GitHub
-> OAuth app pointing at it, then set `base_url` in
-> `public/admin/config.yml` — or rather, set `repo` in `wiki.config.ts` and run
-> `npm run gen:cms`, since that file is generated. Until that's done, `/admin`
-> loads but sign-in fails.
+> **One-time setup, by an admin:** `/admin` loads for anyone, but sign-in needs a
+> GitHub OAuth app registered with Netlify. Because this wiki is hosted on
+> Netlify, Sveltia CMS uses Netlify's built-in OAuth client automatically — no
+> Cloudflare Worker and no client secret in the repo. Steps:
+>
+> 1. GitHub → Settings → Developer settings → **OAuth Apps → New OAuth App**.
+>    Authorization callback URL: `https://api.netlify.com/auth/done`
+> 2. Netlify → Site configuration → **Access control → OAuth → Install provider
+>    → GitHub**, and paste the Client ID and Client Secret from step 1.
+> 3. Done. `/admin` sign-in now works for anyone with write access to the repo.
 
 ---
 
