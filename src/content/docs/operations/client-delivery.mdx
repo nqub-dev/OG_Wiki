@@ -45,17 +45,26 @@ them, and nothing of theirs stays entangled with anyone else.
 
 ## Choosing a host
 
-| Host                      | Can gate a private site?                      | Use it for                    |
-| ------------------------- | --------------------------------------------- | ----------------------------- |
-| Cloudflare Pages + Access | Yes — email, one-time PIN, or SSO             | **Client wikis**              |
-| Netlify                   | Yes, on paid tiers                            | Alternative if already in use |
-| Vercel                    | Yes, on Pro                                   | Alternative if already in use |
-| GitHub Pages              | **No** — private Pages needs Enterprise Cloud | Public wikis only             |
+| Host                      | Can gate a private site?                      | Use it for                          |
+| ------------------------- | ---------------------------------------------- | ------------------------------------ |
+| Netlify (git-connected)   | Yes — team-only, built in, free tier           | **Our own wiki** (this one)          |
+| Cloudflare Pages + Access | Yes — email, one-time PIN, or SSO, free tier   | **Client wikis** — see below         |
+| Vercel                    | Yes, on Pro                                    | Alternative if already in use        |
+| GitHub Pages              | **No** — private Pages needs Enterprise Cloud  | Public wikis only                    |
 
-The repo ships workflows for two of these. `deploy-cloudflare.yml` runs on push
-to `main` and is the default. `deploy.yml` publishes to GitHub Pages and is
-**manual-only**, so the two never race — enable it only for a genuinely public
-wiki.
+This wiki (nqub's own) runs on Netlify, connected directly to this GitHub repo
+under Site configuration → Build & deploy → Continuous deployment. Every push
+to `main` rebuilds and republishes automatically — no workflow needed for that.
+It's gated by Netlify's own "team protection": only people invited to the
+Netlify team can view it, no separate config required.
+
+**That gate does not fit a client.** It would mean inviting every reader as a
+Netlify teammate. For an external client, use Cloudflare Pages + Access
+instead — it gates by the client's own email domain or SSO, with no seat per
+reader. `deploy-cloudflare.yml` in this repo does exactly that; it's
+**manual-only** by default (see the note at the top of the file) so it never
+races Netlify's auto-deploy on our own wiki. `deploy.yml` (GitHub Pages) is
+also manual-only, for the rare genuinely-public wiki.
 
 {/* Verify current Cloudflare Access seat limits before quoting a price. */}
 
@@ -72,17 +81,23 @@ wiki.
    placeholders still in place. The production deploy runs it with `--strict`
    and refuses to publish while any remain.
 
-4. **Create the Cloudflare Pages project**, then set the repository secrets
-   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the variable
-   `CLOUDFLARE_PROJECT_NAME`.
+4. **Pick a host per the table above.** For a client: create the Cloudflare
+   Pages project, set repo secrets `CLOUDFLARE_API_TOKEN` and
+   `CLOUDFLARE_ACCOUNT_ID` plus variable `CLOUDFLARE_PROJECT_NAME`, then enable
+   the `push` trigger in `deploy-cloudflare.yml`. For an internal wiki: connect
+   the new Netlify site to the repo (Site configuration → Build & deploy →
+   Continuous deployment → Link repository) — the build settings come from
+   `netlify.toml` already in this repo.
 
 5. **Put Cloudflare Access in front of it.** Allowlist the client's email domain,
    or named addresses, or wire their SSO. Do this _before_ the first content
    goes in, not after.
 
-6. **Set up `/admin`** if non-technical people will edit: deploy the
-   `sveltia-cms-auth` Worker, register a GitHub OAuth app against it, and run
-   `npm run gen:cms`. See `CONTRIBUTING.md`.
+6. **Set up `/admin`** if non-technical people will edit. On Netlify, this is
+   two clicks — register a GitHub OAuth app and paste its credentials into
+   Netlify's own OAuth provider settings, no Worker needed (see
+   `CONTRIBUTING.md`). Only deploy the separate `sveltia-cms-auth` Cloudflare
+   Worker if the wiki is hosted somewhere other than Netlify.
 
 7. **Update `.github/CODEOWNERS`** so reviews route to real people.
 

@@ -1,13 +1,17 @@
 name: Deploy to Cloudflare Pages
 
-# The recommended target for CLIENT wikis.
+# OPT-IN. This project currently deploys via Netlify's own GitHub integration
+# (see netlify.toml), which builds and publishes automatically on push — this
+# workflow would just fail with no CLOUDFLARE_* secrets set, on every commit.
 #
-# Why not GitHub Pages: Pages cannot serve a private site unless the org is on
-# GitHub Enterprise Cloud. This is a static build — every file in dist/ is
-# downloadable by anyone who knows its URL, and the Pagefind index is a second
-# copy of the page text — so access control has to happen at the edge.
-# Cloudflare Access sits in front of this deployment and gates it by email,
-# one-time PIN, or SSO, with no application changes.
+# Kept as a reference for later: Cloudflare Pages + Cloudflare Access is the
+# better fit once a wiki needs to be gated for an external CLIENT rather than
+# read by the internal team, since GitHub Pages can't serve a private site
+# without GitHub Enterprise Cloud, and Netlify's own access controls are a
+# paid feature. To switch a given wiki over:
+#   1. Add branches:[main] back to the `on.push` trigger below.
+#   2. Set the three repo secrets/variable listed in the job below.
+#   3. Turn off Netlify's auto-deploy for this repo so the two don't race.
 #
 # Required repository secrets:
 #   CLOUDFLARE_API_TOKEN  — token with the "Cloudflare Pages: Edit" permission
@@ -16,9 +20,6 @@ name: Deploy to Cloudflare Pages
 #   CLOUDFLARE_PROJECT_NAME — the Pages project to deploy into
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
