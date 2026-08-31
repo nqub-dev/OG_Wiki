@@ -67,6 +67,12 @@ export interface WikiConfig {
   branch: string;
   /** Where content lives inside the repo. */
   contentPath: string;
+  /**
+   * Where "Edit this page" sends people.
+   *   'cms'    → the /admin rich-text editor (no Markdown, no GitHub UI)
+   *   'github' → the raw .md file in GitHub's editor
+   */
+  editTarget: 'cms' | 'github';
   /** Auto-generated social share images (Open Graph / Twitter cards). */
   ogImage: {
     enabled: boolean;
@@ -160,6 +166,7 @@ export const wiki: WikiConfig = {
   repo: 'nqub-dev/OG_Wiki',
   branch: 'main',
   contentPath: 'src/content/docs',
+  editTarget: 'cms',
 
   ogImage: {
     enabled: true,

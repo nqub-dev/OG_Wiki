@@ -20,7 +20,7 @@ import {
   statusStyle,
   formatDate,
 } from '../../lib/content';
-import { editUrl, tagUrl } from '../../lib/links';
+import { cmsEditUrl, editUrl, tagUrl } from '../../lib/links';
 
 export async function getStaticPaths() {
   const docs = await getDocs();
@@ -38,7 +38,10 @@ const crumbs = breadcrumbsFor(doc);
 // Take the extension from the real file — .md and .mdx pages coexist, and a
 // hardcoded '.md' produces a 404 for every MDX page.
 const ext = doc.filePath?.match(/\.mdx?$/)?.[0] ?? '.md';
-const pageEditUrl = editUrl(wiki.repo, wiki.branch, wiki.contentPath, doc.id, ext);
+const githubEditUrl = editUrl(wiki.repo, wiki.branch, wiki.contentPath, doc.id, ext);
+// The CMS is the default: most people want a rich-text editor, not a .md file.
+const pageEditUrl = wiki.editTarget === 'cms' ? cmsEditUrl(doc.id) : githubEditUrl;
+const editLabel = wiki.editTarget === 'cms' ? 'Edit this page' : 'Edit on GitHub';
 const knownIds = [...(await getKnownIds())];
 ---
 
@@ -95,8 +98,8 @@ const knownIds = [...(await getKnownIds())];
             wiki.features.editLinks && pageEditUrl && (
               <a
                 href={pageEditUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={wiki.editTarget === 'cms' ? undefined : '_blank'}
+                rel={wiki.editTarget === 'cms' ? undefined : 'noopener noreferrer'}
                 class="link link-hover flex items-center gap-1"
               >
                 <svg
@@ -109,7 +112,7 @@ const knownIds = [...(await getKnownIds())];
                 >
                   <path d="M4 20h4L20 8l-4-4L4 16z" />
                 </svg>
-                Edit this page
+                {editLabel}
               </a>
             )
           }

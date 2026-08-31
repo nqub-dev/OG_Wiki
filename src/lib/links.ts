@@ -53,3 +53,18 @@ export function editUrl(
   const slug = repo.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$|\/$/, '');
   return `https://github.com/${slug}/edit/${branch}/${contentPath}/${id}${ext}`;
 }
+
+/**
+ * Deep link into the /admin CMS editor for one page.
+ *
+ * The CMS has one collection per section folder (see
+ * scripts/gen-cms-config.mjs), so a page id of "start-here/welcome" maps to
+ * collection "start-here", entry "welcome".
+ */
+export function cmsEditUrl(id: string): string | undefined {
+  const slash = id.lastIndexOf('/');
+  if (slash === -1) return undefined; // top-level file: no collection to target
+  const collection = id.slice(0, slash);
+  const entry = id.slice(slash + 1);
+  return `${url('admin/')}#/collections/${collection}/entries/${entry}`;
+}
