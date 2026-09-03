@@ -1,16 +1,17 @@
 ---
-title: Welcome
+title: Welcome - this is Big Daddy
 description: What this wiki is, how it's organised, and where to go first.
 icon: 👋
 section: Start Here
 order: 1
-tags: [orientation, meta]
+tags:
+  - orientation
+  - meta
 status: stable
 updated: 2026-08-26
 owner: Platform Team
 featured: true
 ---
-
 ## What this is
 
 This is a **living wiki**, not a document dump. Every page is a Markdown file in
