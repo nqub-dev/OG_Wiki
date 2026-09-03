@@ -199,9 +199,9 @@ export const wiki: WikiConfig = {
   },
 
   auth: {
-    enabled: false,
-    descopeProjectId: '',
-    flowId: 'sign-in',
+    enabled: true,
+    descopeProjectId: 'P3Ipa5ICYYnv72o5wiXTXSSsRpun',
+    flowId: 'wiki-signin',
   },
 };
 
