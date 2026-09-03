@@ -83,6 +83,25 @@ export interface WikiConfig {
     /** Optional logo drawn on the card. Path is relative to the project root. */
     logo?: { path: string; size?: [number, number?] };
   };
+  /**
+   * Gates the whole wiki behind a Descope login — for when the site is
+   * public on Netlify but access should still be restricted to specific
+   * people (a team, or one client's staff).
+   *
+   * The project id is not secret (it's the equivalent of a publishable key —
+   * safe in client-side code), but the gate itself lives in
+   * netlify/edge-functions/auth-gate.ts and reads the actual Descope
+   * project id from the DESCOPE_PROJECT_ID environment variable in Netlify,
+   * not from this file. Keep the two in sync.
+   */
+  auth: {
+    enabled: boolean;
+    descopeProjectId: string;
+    /** Descope flow id. 'sign-in' rejects anyone without a pre-created
+     *  account; 'sign-up-or-in' lets anyone verify an email and self-serve
+     *  in. Pick 'sign-in' unless self-serve signup is genuinely wanted. */
+    flowId: string;
+  };
 }
 
 export const wiki: WikiConfig = {
@@ -177,6 +196,12 @@ export const wiki: WikiConfig = {
     ],
     border: [241, 107, 36],
     logo: { path: './src/assets/nqub-wordmark-white.png', size: [180] },
+  },
+
+  auth: {
+    enabled: false,
+    descopeProjectId: '',
+    flowId: 'sign-in',
   },
 };
 

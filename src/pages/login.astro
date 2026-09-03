@@ -1,0 +1,93 @@
+---
+/**
+ * Standalone login page — deliberately outside BaseLayout. Showing the
+ * sidebar/nav here would expose the wiki's page structure before the visitor
+ * has actually authenticated.
+ *
+ * netlify/edge-functions/auth-gate.ts excludes this page from the gate, and
+ * redirects here (with ?redirect=<original path>) when a visitor has no
+ * valid Descope session.
+ */
+import wiki from '../../wiki.config';
+import '../styles/global.css';
+
+const pageTitle = `Sign in · ${wiki.name}`;
+---
+
+<!doctype html>
+<html lang="en" data-theme={wiki.themes.light}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{pageTitle}</title>
+
+    <script is:inline define:vars={{ fallback: wiki.themes.light }}>
+      const stored = localStorage.getItem('og-wiki-theme');
+      document.documentElement.setAttribute('data-theme', stored || fallback);
+    </script>
+  </head>
+
+  <body class="bg-base-100 text-base-content grid min-h-screen place-items-center antialiased">
+    <div class="w-full max-w-sm px-4">
+      <div class="mb-8 flex flex-col items-center gap-2 text-center">
+        <span
+          class="bg-primary text-primary-content grid size-10 place-items-center rounded-xl text-lg"
+          aria-hidden="true">{wiki.mark}</span
+        >
+        <p class="text-lg font-semibold">{wiki.name}</p>
+        <h1 class="text-base-content/60 text-sm font-normal">Sign in to continue</h1>
+      </div>
+
+      <div
+        id="login-widget"
+        class="min-h-64"
+        data-enabled={wiki.auth.enabled && !!wiki.auth.descopeProjectId ? 'true' : 'false'}
+        data-project-id={wiki.auth.descopeProjectId}
+        data-flow-id={wiki.auth.flowId}
+      >
+        <div id="login-fallback" class="alert alert-warning alert-soft text-sm">
+          <span>
+            Login isn't configured yet. Set <code>auth.descopeProjectId</code> in
+            <code>wiki.config.ts</code> and the <code>DESCOPE_PROJECT_ID</code> environment
+            variable in Netlify.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // A plain (non-inline) module script, so Vite actually bundles the npm
+      // import below. Passing projectId/flowId through define:vars instead
+      // would force Astro to treat this as `is:inline`, and an inline script
+      // can't resolve a bare npm specifier in the browser.
+      import '@descope/web-component';
+
+      const widget = document.getElementById('login-widget')!;
+      if (widget.dataset.enabled !== 'true') {
+        // Static fallback message already in the DOM — nothing more to do.
+      } else {
+        document.getElementById('login-fallback')?.remove();
+
+        const el = document.createElement('descope-wc');
+        el.setAttribute('project-id', widget.dataset.projectId!);
+        el.setAttribute('flow-id', widget.dataset.flowId!);
+        el.setAttribute('theme', 'os');
+        widget.appendChild(el);
+
+        // Only ever redirect to a same-origin path. The `redirect` query
+        // param is attacker-controlled input (it's set by whoever links to
+        // this page), so an unvalidated redirect would be an open redirect —
+        // a single leading slash is required, `//` (which browsers treat as
+        // protocol-relative, i.e. off-site) is rejected.
+        const requested = new URLSearchParams(location.search).get('redirect');
+        const destination =
+          requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : '/';
+
+        el.addEventListener('success', () => {
+          location.href = destination;
+        });
+      }
+    </script>
+  </body>
+</html>

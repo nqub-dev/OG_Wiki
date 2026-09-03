@@ -55,8 +55,35 @@ them, and nothing of theirs stays entangled with anyone else.
 This wiki (nqub's own) runs on Netlify, connected directly to this GitHub repo
 under Site configuration → Build & deploy → Continuous deployment. Every push
 to `main` rebuilds and republishes automatically — no workflow needed for that.
-It's gated by Netlify's own "team protection": only people invited to the
-Netlify team can view it, no separate config required.
+
+### Gating without handing out Netlify or Cloudflare accounts
+
+Netlify's own "team protection" gate requires every viewer to be invited as a
+Netlify teammate — fine for us, wrong for a client. Cloudflare Access avoids
+that but needs the domain's DNS to run through Cloudflare (see the table
+below). A third option needs neither: **Descope**, wired directly into this
+template.
+
+- `netlify/edge-functions/auth-gate.ts` runs in front of every page and checks
+  for a valid Descope session cookie (`DS`), verified against that Descope
+  project's public JWKS — no Descope SDK needed at the edge.
+- `src/pages/login.astro` renders Descope's hosted login widget.
+- Turn it on: set `auth.enabled: true` and `auth.descopeProjectId` in
+  `wiki.config.ts`, set the `DESCOPE_PROJECT_ID` environment variable in
+  Netlify (scoped to include Functions), and in the Descope Console set
+  session persistence to a cookie named `DS`.
+
+<Callout type="warning" title="Self-signup is not the same as an allowlist">
+  Descope's default `sign-up-or-in` flow lets anyone who can receive an email
+  verify it and get in — that's a speed bump, not access control. Use the
+  `sign-in` flow (rejects anyone without a pre-created account) and
+  pre-provision people in the Descope Console, or add a domain/allowlist
+  condition in the flow, before treating this as a real gate.
+</Callout>
+
+While `auth.enabled` is `false` (the default), the edge function fails open —
+it does nothing, so a fresh clone isn't accidentally locked out before anyone
+has set Descope up.
 
 **That gate does not fit a client.** It would mean inviting every reader as a
 Netlify teammate. For an external client, use Cloudflare Pages + Access

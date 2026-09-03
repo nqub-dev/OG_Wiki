@@ -12,7 +12,19 @@ const config = readFileSync(new URL('../wiki.config.ts', import.meta.url), 'utf8
 
 const value = (key) => config.match(new RegExp(`^\\s*${key}:\\s*'([^']*)'`, 'm'))?.[1] ?? '';
 
+// Anchored tight (enabled must be the very next token after the brace) so
+// this can't run past the interface declaration into an unrelated `enabled:
+// true` elsewhere in the file — e.g. ogImage's.
+const authEnabled = /auth:\s*\{\s*enabled:\s*true/.test(config);
+const authProjectId = value('descopeProjectId');
+
 const checks = [
+  {
+    name: 'auth.descopeProjectId',
+    ok: !authEnabled || authProjectId.length > 0,
+    found: authEnabled ? authProjectId || '(empty)' : '(auth disabled)',
+    fix: 'auth.enabled is true but descopeProjectId is empty — every visitor will be redirected to a login page that can never succeed. Set the project id, or set auth.enabled back to false.',
+  },
   {
     name: 'site',
     ok: !/example\.com/.test(value('site')),
