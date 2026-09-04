@@ -4,12 +4,16 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 /**
  * Gates every wiki page behind a Descope session.
  *
- * The Descope web component (see src/pages/login.astro) is configured in the
- * Descope Console to persist its session as a cookie named `DS` (Project
- * Settings → session persistence → Cookie). This function reads that cookie
- * and verifies it — no Descope SDK needed at the edge, just its public JWKS.
+ * The `DS` cookie this reads is set by src/pages/login.astro itself, on this
+ * site's own origin — NOT by Descope's console-level cookie mode. That mode
+ * only sets cookies on Descope's own domain (api.descope.com by default; a
+ * custom domain fixes that, but custom domains are a paid Descope feature),
+ * which the browser would never send to this origin anyway. So login.astro
+ * reads the session JWT the widget already wrote to localStorage
+ * (`getSessionToken()`) and copies it into a first-party cookie here.
  *
- * The JWKS endpoint is scoped to one Descope project
+ * This function just verifies that JWT — no Descope SDK needed at the edge,
+ * only its public JWKS. The JWKS endpoint is scoped to one Descope project
  * (https://api.descope.com/<project-id>/.well-known/jwks.json), so a
  * signature that verifies against it could only have been issued by that
  * project. That's what stands in for an audience check here.

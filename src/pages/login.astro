@@ -58,10 +58,11 @@ const pageTitle = `Sign in · ${wiki.name}`;
 
     <script>
       // A plain (non-inline) module script, so Vite actually bundles the npm
-      // import below. Passing projectId/flowId through define:vars instead
+      // imports below. Passing projectId/flowId through define:vars instead
       // would force Astro to treat this as `is:inline`, and an inline script
       // can't resolve a bare npm specifier in the browser.
       import '@descope/web-component';
+      import { getSessionToken } from '@descope/web-js-sdk';
 
       const widget = document.getElementById('login-widget')!;
       if (widget.dataset.enabled !== 'true') {
@@ -85,6 +86,32 @@ const pageTitle = `Sign in · ${wiki.name}`;
           requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : '/';
 
         el.addEventListener('success', () => {
+          // The widget's own SDK already wrote the session JWT to
+          // localStorage (key "DS") as part of completing the flow.
+          // getSessionToken() reads that back — no separate SDK instance
+          // needed, no need to inspect the event's undocumented payload.
+          //
+          // We then copy it into an actual cookie ourselves, scoped to THIS
+          // origin. That's deliberate: Descope's own cookie-mode only sets
+          // cookies on ITS domain (api.descope.com by default; a custom
+          // domain removes that, but custom domains are a paid Descope
+          // feature we don't have). A cookie Descope sets on its own domain
+          // would never reach this site's origin at all. A cookie we set
+          // ourselves, here, on window.location.hostname, has no such
+          // problem — and it's exactly the cookie
+          // netlify/edge-functions/auth-gate.ts reads on every request.
+          const token = getSessionToken();
+          if (token) {
+            // Cookie lifetime is cosmetic here — the edge function verifies
+            // the JWT's own `exp` claim via jose, which is what actually
+            // decides how long someone stays signed in. That's set by
+            // "Session Token Timeout" in Descope's console (Project Settings
+            // → Session Management). 10 minutes is Descope's default; raise
+            // it there for a longer-lived wiki session — no code change
+            // needed. This Max-Age just keeps the cookie from lingering
+            // pointlessly past a full day.
+            document.cookie = `DS=${encodeURIComponent(token)}; Path=/; Max-Age=86400; SameSite=Lax; Secure`;
+          }
           location.href = destination;
         });
       }
