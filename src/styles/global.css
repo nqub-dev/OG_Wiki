@@ -27,8 +27,11 @@
   --color-base-300: oklch(93% 0.007 264);
   --color-base-content: oklch(26% 0.019 264);
 
-  --color-primary: oklch(52% 0.19 266);
-  --color-primary-content: oklch(98% 0.012 266);
+  /* Real nqub brand orange (#f16b24), same value in both custom themes —
+     the brand colour does not change between light and dark, only the UI
+     around it does. */
+  --color-primary: oklch(68% 0.182 44.1);
+  --color-primary-content: oklch(32% 0.002 325.6);
   --color-secondary: oklch(57% 0.17 322);
   --color-secondary-content: oklch(98% 0.012 322);
   --color-accent: oklch(68% 0.13 192);
@@ -67,8 +70,9 @@
   --color-base-300: oklch(16% 0.015 264);
   --color-base-content: oklch(92% 0.011 264);
 
-  --color-primary: oklch(72% 0.15 266);
-  --color-primary-content: oklch(18% 0.04 266);
+  /* Same brand orange as og-light — see the comment there. */
+  --color-primary: oklch(68% 0.182 44.1);
+  --color-primary-content: oklch(32% 0.002 325.6);
   --color-secondary: oklch(74% 0.14 322);
   --color-secondary-content: oklch(18% 0.04 322);
   --color-accent: oklch(76% 0.12 192);

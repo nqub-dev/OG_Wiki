@@ -9,6 +9,7 @@
  * valid Descope session.
  */
 import wiki from '../../wiki.config';
+import Logo from '../components/Logo.astro';
 import '../styles/global.css';
 
 const pageTitle = `Sign in · ${wiki.name}`;
@@ -30,18 +31,14 @@ const pageTitle = `Sign in · ${wiki.name}`;
 
   <body class="bg-base-100 text-base-content grid min-h-screen place-items-center antialiased">
     <div class="w-full max-w-sm px-4">
-      <div class="mb-8 flex flex-col items-center gap-2 text-center">
-        <span
-          class="bg-primary text-primary-content grid size-10 place-items-center rounded-xl text-lg"
-          aria-hidden="true">{wiki.mark}</span
-        >
-        <p class="text-lg font-semibold">{wiki.name}</p>
+      <div class="mb-8 flex flex-col items-center gap-3 text-center">
+        {wiki.useLogo ? <Logo class="h-8 w-auto" /> : <p class="text-lg font-semibold">{wiki.name}</p>}
         <h1 class="text-base-content/60 text-sm font-normal">Sign in to continue</h1>
       </div>
 
       <div
         id="login-widget"
-        class="min-h-64"
+        class="min-h-64 overflow-hidden rounded-box shadow-xl ring-1 ring-black/10"
         data-enabled={wiki.auth.enabled && !!wiki.auth.descopeProjectId ? 'true' : 'false'}
         data-project-id={wiki.auth.descopeProjectId}
         data-flow-id={wiki.auth.flowId}
