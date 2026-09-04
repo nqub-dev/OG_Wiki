@@ -74,5 +74,13 @@ export const config: Config = {
     '/pagefind/*',
     '/favicon*',
     '/sitemap*',
+    // Astro/Vite's bundled JS and CSS. Without this, the login page's own
+    // script gets caught by the gate (no cookie exists yet on /login by
+    // definition) and redirected back to /login — so the browser receives
+    // the login page's HTML where it expected a JS module, and every script
+    // and stylesheet on the site fails the same way pre-auth.
+    '/_astro/*',
+    // CMS-uploaded images should render without a session too.
+    '/uploads/*',
   ],
 };
