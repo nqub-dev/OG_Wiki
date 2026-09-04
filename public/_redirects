@@ -1,0 +1,10 @@
+# The netlify.app URL always keeps working alongside a custom domain — Netlify
+# doesn't redirect it automatically. This sends anyone who lands on it to the
+# real domain instead.
+#
+# The `!` forces the redirect even though every path here also matches a real
+# file in the build; without it Netlify serves the file instead of redirecting.
+# Because the source is a full https://<host>/* URL, this only matches requests
+# that arrive on the netlify.app hostname — visitors already on wiki.nqub.com
+# never hit this rule, so there's no redirect loop.
+https://nqub-wiki.netlify.app/*  https://wiki.nqub.com/:splat  301!
