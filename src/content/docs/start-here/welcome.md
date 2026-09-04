@@ -1,5 +1,5 @@
 ---
-title: Welcome - this is Big Daddy
+title: Welcome - this is nqūb and our plush Wiki. Yeya!
 description: What this wiki is, how it's organised, and where to go first.
 icon: 👋
 section: Start Here
@@ -24,13 +24,13 @@ keep in sync.
 Pages belong to a **section** (set in frontmatter) and are ordered inside it.
 Four sections ship by default:
 
-| Section     | What lives here             |
-| ----------- | --------------------------- |
-| Start Here  | Orientation for new readers |
-| Handbook    | People, process, and policy |
+| Section | What lives here |
+| --- | --- |
+| Start Here | Orientation for new readers |
+| Handbook | People, process, and policy |
 | Engineering | Architecture, systems, code |
-| Operations  | Runbooks and on-call        |
-| Reference   | Lookups and specifications  |
+| Operations | Runbooks and on-call |
+| Reference | Lookups and specifications |
 
 Rename or replace them in `wiki.config.ts` — the `sections` array also controls
 the order they appear in.
