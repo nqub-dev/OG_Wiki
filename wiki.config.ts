@@ -69,10 +69,12 @@ export interface WikiConfig {
   contentPath: string;
   /**
    * Where "Edit this page" sends people.
-   *   'cms'    → the /admin rich-text editor (no Markdown, no GitHub UI)
-   *   'github' → the raw .md file in GitHub's editor
+   *   'inline' → in-page editor at /wiki/edit — signs in with Descope, no
+   *              GitHub account needed. .md pages only (see wiki-get.mts).
+   *   'cms'    → the /admin rich-text editor (needs a GitHub account)
+   *   'github' → the raw .md file in GitHub's editor (needs a GitHub account)
    */
-  editTarget: 'cms' | 'github';
+  editTarget: 'inline' | 'cms' | 'github';
   /** Auto-generated social share images (Open Graph / Twitter cards). */
   ogImage: {
     enabled: boolean;
@@ -185,7 +187,7 @@ export const wiki: WikiConfig = {
   repo: 'nqub-dev/OG_Wiki',
   branch: 'main',
   contentPath: 'src/content/docs',
-  editTarget: 'cms',
+  editTarget: 'inline',
 
   ogImage: {
     enabled: true,

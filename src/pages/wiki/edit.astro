@@ -1,0 +1,241 @@
+---
+/**
+ * In-page wiki editor. Client-rendered on purpose — it always needs the
+ * current live content (netlify/functions/wiki-get.mts reads straight from
+ * GitHub), not whatever Astro last baked into a static build.
+ *
+ * Client-side permission checks here are UX only — deciding whether to show
+ * the form at all. The real gate is netlify/functions/wiki-save.mts, which
+ * verifies the Descope session and the `Wiki Edit` permission server-side
+ * before it will commit anything.
+ */
+import wiki from '../../../wiki.config';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/global.css';
+---
+
+<BaseLayout title="Edit page">
+  <div class="mx-auto w-full max-w-3xl px-4 py-8 lg:px-8">
+    <div id="edit-loading" class="flex items-center gap-3 py-16 text-sm opacity-60">
+      <span class="loading loading-spinner loading-sm"></span>
+      Loading…
+    </div>
+
+    <div id="edit-denied" class="hidden">
+      <div class="alert alert-warning alert-soft">
+        <span
+          >You need the <code>Wiki Edit</code> permission to edit pages. Ask an admin to grant it in Descope,
+          or use <a href="/admin" class="link">the CMS</a> if you have a GitHub account with repo access.</span
+        >
+      </div>
+    </div>
+
+    <form
+      id="edit-form"
+      class="hidden flex-col gap-4"
+      data-sections={JSON.stringify(wiki.sections)}
+    >
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold" id="edit-heading">Edit page</h1>
+        <a id="edit-cancel" href="/" class="btn btn-ghost btn-sm">Cancel</a>
+      </div>
+
+      <div id="edit-error" class="alert alert-error alert-soft hidden text-sm"></div>
+
+      <label class="fieldset-label" for="f-title">Title</label>
+      <input id="f-title" name="title" class="input w-full" required />
+
+      <label class="fieldset-label" for="f-description">Description</label>
+      <input id="f-description" name="description" class="input w-full" />
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="fieldset-label" for="f-icon">Icon (emoji)</label>
+          <input id="f-icon" name="icon" class="input w-full" />
+        </div>
+        <div>
+          <label class="fieldset-label" for="f-section">Section</label>
+          <select id="f-section" name="section" class="select w-full"></select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="fieldset-label" for="f-status">Status</label>
+          <select id="f-status" name="status" class="select w-full">
+            <option value="draft">Draft</option>
+            <option value="review">In review</option>
+            <option value="stable">Stable</option>
+            <option value="deprecated">Deprecated</option>
+          </select>
+        </div>
+        <div>
+          <label class="fieldset-label" for="f-owner">Owner</label>
+          <input id="f-owner" name="owner" class="input w-full" />
+        </div>
+      </div>
+
+      <label class="fieldset-label" for="f-tags">Tags (comma-separated)</label>
+      <input id="f-tags" name="tags" class="input w-full" />
+
+      <div class="flex gap-6">
+        <label class="label cursor-pointer gap-2">
+          <input id="f-draft" type="checkbox" class="checkbox checkbox-sm" />
+          Hide from published site
+        </label>
+        <label class="label cursor-pointer gap-2">
+          <input id="f-featured" type="checkbox" class="checkbox checkbox-sm" />
+          Feature on home page
+        </label>
+      </div>
+
+      <label class="fieldset-label" for="f-body">Content (Markdown)</label>
+      <textarea id="f-body" name="body" class="textarea h-96 w-full font-mono text-sm" required
+      ></textarea>
+
+      <div class="flex items-center justify-end gap-3">
+        <span id="edit-status" class="text-sm opacity-60"></span>
+        <button id="edit-save" type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getSessionToken } from '@descope/web-js-sdk';
+
+  const EDIT_PERMISSION = 'Wiki Edit';
+  const id = new URLSearchParams(location.search).get('id');
+
+  const loadingEl = document.getElementById('edit-loading')!;
+  const deniedEl = document.getElementById('edit-denied')!;
+  const formEl = document.getElementById('edit-form') as HTMLFormElement;
+  const errorEl = document.getElementById('edit-error')!;
+  const statusEl = document.getElementById('edit-status')!;
+
+  function show(el: HTMLElement) {
+    el.classList.remove('hidden');
+  }
+  function hide(el: HTMLElement) {
+    el.classList.add('hidden');
+  }
+
+  /**
+   * Client-side-only decode, no signature check — this token was already
+   * verified server-side to even get us onto this origin (the edge auth
+   * gate). Used here purely to decide whether to render the form.
+   */
+  function decodePermissions(jwt: string): string[] {
+    try {
+      const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return Array.isArray(payload.permissions) ? payload.permissions : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async function init() {
+    if (!id) {
+      loadingEl.textContent = 'Missing ?id — open this page via "Edit this page" on a wiki page.';
+      return;
+    }
+
+    const token = getSessionToken();
+    const permissions = token ? decodePermissions(token) : [];
+    if (!permissions.includes(EDIT_PERMISSION)) {
+      hide(loadingEl);
+      show(deniedEl);
+      return;
+    }
+
+    const res = await fetch(`/api/wiki/get?id=${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      loadingEl.textContent =
+        res.status === 401 || res.status === 403
+          ? "You don't have permission to edit this page."
+          : `Couldn't load this page (${res.status}). It may only exist as .mdx, which this editor doesn't support yet.`;
+      return;
+    }
+
+    const { data, body, sha } = await res.json();
+    formEl.dataset.sha = sha;
+
+    (document.getElementById('f-title') as HTMLInputElement).value = data.title ?? '';
+    (document.getElementById('f-description') as HTMLInputElement).value = data.description ?? '';
+    (document.getElementById('f-icon') as HTMLInputElement).value = data.icon ?? '📄';
+    (document.getElementById('f-owner') as HTMLInputElement).value = data.owner ?? '';
+    (document.getElementById('f-tags') as HTMLInputElement).value = (data.tags ?? []).join(', ');
+    (document.getElementById('f-status') as HTMLSelectElement).value = data.status ?? 'stable';
+    (document.getElementById('f-draft') as HTMLInputElement).checked = !!data.draft;
+    (document.getElementById('f-featured') as HTMLInputElement).checked = !!data.featured;
+    (document.getElementById('f-body') as HTMLTextAreaElement).value = body ?? '';
+
+    const sectionSelect = document.getElementById('f-section') as HTMLSelectElement;
+    const sections: string[] = JSON.parse(formEl.dataset.sections || '[]');
+    for (const section of sections) {
+      const opt = document.createElement('option');
+      opt.value = section;
+      opt.textContent = section;
+      sectionSelect.appendChild(opt);
+    }
+    sectionSelect.value = data.section ?? sections[0] ?? '';
+
+    document.getElementById('edit-heading')!.textContent = `Edit “${data.title}”`;
+    document.getElementById('edit-cancel')!.setAttribute('href', `/wiki/${id}/`);
+    document.title = `Edit ${data.title}`;
+
+    hide(loadingEl);
+    show(formEl);
+    formEl.classList.add('flex');
+  }
+
+  formEl?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    hide(errorEl);
+    statusEl.textContent = 'Saving…';
+
+    const tags = (document.getElementById('f-tags') as HTMLInputElement).value
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const payload = {
+      id,
+      sha: formEl.dataset.sha,
+      body: (document.getElementById('f-body') as HTMLTextAreaElement).value,
+      data: {
+        title: (document.getElementById('f-title') as HTMLInputElement).value,
+        description:
+          (document.getElementById('f-description') as HTMLInputElement).value || undefined,
+        icon: (document.getElementById('f-icon') as HTMLInputElement).value || '📄',
+        section: (document.getElementById('f-section') as HTMLSelectElement).value,
+        order: 999,
+        tags,
+        status: (document.getElementById('f-status') as HTMLSelectElement).value,
+        owner: (document.getElementById('f-owner') as HTMLInputElement).value || undefined,
+        draft: (document.getElementById('f-draft') as HTMLInputElement).checked,
+        featured: (document.getElementById('f-featured') as HTMLInputElement).checked,
+      },
+    };
+
+    try {
+      const res = await fetch('/api/wiki/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+
+      statusEl.textContent = 'Saved — rebuilding, back in ~1 minute…';
+      setTimeout(() => {
+        location.href = `/wiki/${id}/`;
+      }, 1500);
+    } catch (err) {
+      statusEl.textContent = '';
+      errorEl.textContent = err instanceof Error ? err.message : String(err);
+      show(errorEl);
+    }
+  });
+
+  init();
+</script>

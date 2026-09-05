@@ -68,3 +68,11 @@ export function cmsEditUrl(id: string): string | undefined {
   const entry = id.slice(slash + 1);
   return `${url('admin/')}#/collections/${collection}/entries/${entry}`;
 }
+
+/**
+ * Link into the in-page editor (src/pages/wiki/edit.astro). Only .md pages
+ * are supported there — see netlify/functions/wiki-get.mts for why.
+ */
+export function inlineEditUrl(id: string): string {
+  return `${url('wiki/edit/')}?id=${encodeURIComponent(id)}`;
+}

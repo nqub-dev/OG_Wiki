@@ -1,5 +1,5 @@
 import type { Config, Context } from '@netlify/edge-functions';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { verifySession } from '../../src/lib/descope-auth.ts';
 
 /**
  * Gates every wiki page behind a Descope session.
@@ -12,32 +12,11 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
  * reads the session JWT the widget already wrote to localStorage
  * (`getSessionToken()`) and copies it into a first-party cookie here.
  *
- * This function just verifies that JWT — no Descope SDK needed at the edge,
- * only its public JWKS. The JWKS endpoint is scoped to one Descope project
- * (https://api.descope.com/<project-id>/.well-known/jwks.json), so a
- * signature that verifies against it could only have been issued by that
- * project. That's what stands in for an audience check here.
+ * Verification itself lives in src/lib/descope-auth.ts, shared with the
+ * Node functions under netlify/functions/ that gate saving a page.
  */
 
 const PROJECT_ID = Netlify.env.get('DESCOPE_PROJECT_ID');
-const COOKIE_NAME = 'DS';
-
-// createRemoteJWKSet caches the key set and re-fetches only on a signature
-// miss, so this doesn't hit the network on every request.
-const JWKS = PROJECT_ID
-  ? createRemoteJWKSet(new URL(`https://api.descope.com/${PROJECT_ID}/.well-known/jwks.json`))
-  : undefined;
-
-function readCookie(request: Request, name: string): string | undefined {
-  const header = request.headers.get('cookie');
-  if (!header) return undefined;
-  for (const part of header.split(';')) {
-    const eq = part.indexOf('=');
-    if (eq === -1) continue;
-    if (part.slice(0, eq).trim() === name) return decodeURIComponent(part.slice(eq + 1).trim());
-  }
-  return undefined;
-}
 
 function redirectToLogin(request: Request): Response {
   const url = new URL(request.url);
@@ -49,16 +28,10 @@ function redirectToLogin(request: Request): Response {
 export default async (request: Request, context: Context) => {
   // Not configured yet (e.g. a fresh clone before Descope is set up):
   // fail open so the wiki doesn't lock everyone out by accident.
-  if (!PROJECT_ID || !JWKS) return context.next();
+  if (!PROJECT_ID) return context.next();
 
-  const token = readCookie(request, COOKIE_NAME);
-  if (!token) return redirectToLogin(request);
-
-  try {
-    await jwtVerify(token, JWKS);
-  } catch {
-    return redirectToLogin(request);
-  }
+  const claims = await verifySession(request, PROJECT_ID);
+  if (!claims) return redirectToLogin(request);
 
   return context.next();
 };
@@ -74,13 +47,5 @@ export const config: Config = {
     '/pagefind/*',
     '/favicon*',
     '/sitemap*',
-    // Astro/Vite's bundled JS and CSS. Without this, the login page's own
-    // script gets caught by the gate (no cookie exists yet on /login by
-    // definition) and redirected back to /login — so the browser receives
-    // the login page's HTML where it expected a JS module, and every script
-    // and stylesheet on the site fails the same way pre-auth.
-    '/_astro/*',
-    // CMS-uploaded images should render without a session too.
-    '/uploads/*',
   ],
 };

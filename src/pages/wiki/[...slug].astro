@@ -20,7 +20,7 @@ import {
   statusStyle,
   formatDate,
 } from '../../lib/content';
-import { cmsEditUrl, editUrl, tagUrl } from '../../lib/links';
+import { cmsEditUrl, editUrl, inlineEditUrl, tagUrl } from '../../lib/links';
 
 export async function getStaticPaths() {
   const docs = await getDocs();
@@ -39,9 +39,17 @@ const crumbs = breadcrumbsFor(doc);
 // hardcoded '.md' produces a 404 for every MDX page.
 const ext = doc.filePath?.match(/\.mdx?$/)?.[0] ?? '.md';
 const githubEditUrl = editUrl(wiki.repo, wiki.branch, wiki.contentPath, doc.id, ext);
-// The CMS is the default: most people want a rich-text editor, not a .md file.
-const pageEditUrl = wiki.editTarget === 'cms' ? cmsEditUrl(doc.id) : githubEditUrl;
-const editLabel = wiki.editTarget === 'cms' ? 'Edit this page' : 'Edit on GitHub';
+// The in-page editor only round-trips plain Markdown — .mdx pages carry
+// custom JSX components a plain body textarea can't safely edit, so they
+// fall back to the CMS/GitHub target even when 'inline' is the default.
+const useInline = wiki.editTarget === 'inline' && ext === '.md';
+const pageEditUrl = useInline
+  ? inlineEditUrl(doc.id)
+  : wiki.editTarget === 'github'
+    ? githubEditUrl
+    : cmsEditUrl(doc.id);
+const editLabel = useInline || wiki.editTarget === 'cms' ? 'Edit this page' : 'Edit on GitHub';
+const editSameTab = useInline || wiki.editTarget === 'cms';
 const knownIds = [...(await getKnownIds())];
 ---
 
@@ -98,8 +106,8 @@ const knownIds = [...(await getKnownIds())];
             wiki.features.editLinks && pageEditUrl && (
               <a
                 href={pageEditUrl}
-                target={wiki.editTarget === 'cms' ? undefined : '_blank'}
-                rel={wiki.editTarget === 'cms' ? undefined : 'noopener noreferrer'}
+                target={editSameTab ? undefined : '_blank'}
+                rel={editSameTab ? undefined : 'noopener noreferrer'}
                 class="link link-hover flex items-center gap-1"
               >
                 <svg
