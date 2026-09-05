@@ -47,5 +47,11 @@ export const config: Config = {
     '/pagefind/*',
     '/favicon*',
     '/sitemap*',
+    // Astro/Vite's own bundled JS and CSS. Missing this meant an
+    // unauthenticated visitor's request for THESE files also got redirected
+    // to /login — including the login page's own script, which is what
+    // mounts the Descope widget and clears the "not configured" fallback.
+    // The page rendered, but the one script that makes it work never ran.
+    '/_astro/*',
   ],
 };
