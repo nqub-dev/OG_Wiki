@@ -4,9 +4,9 @@ description: What Banker Assist does and who it's for.
 icon: 🧑‍💼
 section: nqub Products
 order: 4
-tags: [product]
+tags: []
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

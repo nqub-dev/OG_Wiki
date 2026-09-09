@@ -4,9 +4,9 @@ description: What BXS does and who it's for.
 icon: 🏦
 section: nqub Products
 order: 3
-tags: [product]
+tags: []
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

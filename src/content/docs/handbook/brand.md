@@ -6,7 +6,7 @@ section: Handbook
 order: 2
 tags: [brand, design]
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Logos

@@ -6,7 +6,7 @@ section: Handbook
 order: 1
 tags: [onboarding, people]
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Email

@@ -4,9 +4,9 @@ description: Index of active and past client engagements.
 icon: 📁
 section: Client Projects
 order: 1
-tags: [clients]
+tags: []
 status: draft
-owner: Unassigned
+owner: MNRVA
 featured: true
 ---
 

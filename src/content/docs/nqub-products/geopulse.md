@@ -4,9 +4,9 @@ description: What GeoPulse does and who it's for.
 icon: 📡
 section: nqub Products
 order: 1
-tags: [product]
+tags: []
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

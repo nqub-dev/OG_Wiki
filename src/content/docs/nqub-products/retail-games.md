@@ -4,9 +4,9 @@ description: What Retail Games does and who it's for.
 icon: 🎮
 section: nqub Products
 order: 8
-tags: [product]
+tags: []
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

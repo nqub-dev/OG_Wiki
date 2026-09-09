@@ -4,9 +4,9 @@ description: The GeoPulse/AIMS deployment for Brinks.
 icon: 📡
 section: Client Projects
 order: 4
-tags: [clients, brinks]
+tags: [brinks]
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

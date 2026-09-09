@@ -4,9 +4,9 @@ description: What JourneyDesigner does and who it's for.
 icon: 🗺️
 section: nqub Products
 order: 2
-tags: [product]
+tags: []
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

@@ -4,9 +4,9 @@ description: Security consulting and penetration testing work for Brinks.
 icon: 🛡️
 section: Client Projects
 order: 5
-tags: [clients, brinks, security]
+tags: [brinks, security]
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

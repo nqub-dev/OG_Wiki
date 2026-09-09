@@ -4,9 +4,9 @@ description: Details on the AARM project for Brinks.
 icon: 🔐
 section: Client Projects
 order: 3
-tags: [clients, brinks]
+tags: [brinks]
 status: draft
-owner: Unassigned
+owner: MNRVA
 ---
 
 ## Overview

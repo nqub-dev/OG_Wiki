@@ -4,9 +4,9 @@ description: Overview of the Brinks relationship and active projects.
 icon: 🔐
 section: Client Projects
 order: 2
-tags: [clients, brinks]
+tags: [brinks]
 status: draft
-owner: Unassigned
+owner: MNRVA
 featured: true
 ---
 
