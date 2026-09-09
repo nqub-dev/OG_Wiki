@@ -2,7 +2,7 @@
 title: Projects
 description: Index of active and past client engagements.
 icon: 📁
-section: Clients Area
+section: Client Projects
 order: 1
 tags: [clients]
 status: draft

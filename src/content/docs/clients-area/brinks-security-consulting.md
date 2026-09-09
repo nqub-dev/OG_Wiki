@@ -2,7 +2,7 @@
 title: Brinks - Security Consulting and Pen Testing
 description: Security consulting and penetration testing work for Brinks.
 icon: 🛡️
-section: Clients Area
+section: Client Projects
 order: 5
 tags: [clients, brinks, security]
 status: draft

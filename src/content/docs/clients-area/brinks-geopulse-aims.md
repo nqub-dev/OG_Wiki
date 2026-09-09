@@ -2,7 +2,7 @@
 title: Brinks - GeoPulse/AIMS
 description: The GeoPulse/AIMS deployment for Brinks.
 icon: 📡
-section: Clients Area
+section: Client Projects
 order: 4
 tags: [clients, brinks]
 status: draft

@@ -23,7 +23,7 @@ locale: en
 
 collections:
   - name: clients-area
-    label: "Clients Area"
+    label: "Client Projects"
     label_singular: page
     folder: src/content/docs/clients-area
     create: true
@@ -40,7 +40,7 @@ collections:
       - { name: description, label: Description, widget: text, required: false }
       - { name: icon, label: Icon (emoji), widget: string, default: '📄', required: false }
       # Pinned to this folder so frontmatter can't disagree with location.
-      - { name: section, label: Section, widget: hidden, default: "Clients Area" }
+      - { name: section, label: Section, widget: hidden, default: "Client Projects" }
       - { name: order, label: Sort order, widget: number, default: 999, value_type: int }
       - { name: tags, label: Tags, widget: list, required: false }
       - name: status

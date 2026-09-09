@@ -20,7 +20,7 @@ each of our products does, and what we're doing for each client.
 - **[[handbook/onboarding]]** — new here? Start with this.
 - **[[handbook/brand]]** — logos, colors, and how to use them.
 - **nqub Products** (sidebar) — one page per product.
-- **Clients Area** (sidebar) — what we're doing, and for whom.
+- **Client Projects** (sidebar) — what we're doing, and for whom.
 
 ## Finding things
 

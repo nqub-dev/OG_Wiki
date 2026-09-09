@@ -2,7 +2,7 @@
 title: Brinks - AARM
 description: Details on the AARM project for Brinks.
 icon: 🔐
-section: Clients Area
+section: Client Projects
 order: 3
 tags: [clients, brinks]
 status: draft

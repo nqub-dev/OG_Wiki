@@ -2,7 +2,7 @@
 title: Brinks
 description: Overview of the Brinks relationship and active projects.
 icon: 🔐
-section: Clients Area
+section: Client Projects
 order: 2
 tags: [clients, brinks]
 status: draft
