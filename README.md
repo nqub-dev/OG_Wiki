@@ -116,7 +116,7 @@ featured: false
 The sidebar, search index, tag pages, backlinks and prev/next navigation all
 update from that one file. There is no separate nav config to maintain.
 
-Only `title` is required. Full field reference: `/wiki/reference/frontmatter`.
+Only `title` is required. Full field reference: `CONTRIBUTING.md`.
 
 ---
 
@@ -195,53 +195,134 @@ sidebar does not make it private, and any "gate some sections" scheme leaks
 through search. **Access control has to happen at the edge, and isolation has to
 be per-deployment.**
 
-Two workflows ship:
+### One repo, one deployment, one client
 
-| Workflow                | Target           | Trigger                          | Use for                                        |
-| ----------------------- | ---------------- | -------------------------------- | ---------------------------------------------- |
-| `deploy-cloudflare.yml` | Cloudflare Pages | push to `main`, plus PR previews | **Client wikis** (gate with Cloudflare Access) |
-| `deploy.yml`            | GitHub Pages     | manual only                      | Public wikis                                   |
+Do **not** build a shared multi-tenant wiki with per-section permissions. On a
+static host it cannot be made safe. Clone the template per client instead —
+client A cannot see client B's content because it is a different repository, a
+different build, a different search index and a different domain. A client who
+leaves takes a self-contained folder of Markdown with them.
 
-GitHub Pages cannot serve a private site without GitHub Enterprise Cloud, which
-is why it is not the default. `deploy.yml` is manual-only so the two workflows
-never race to publish the same commit.
+### Choosing a host
 
-### Cloudflare setup
+| Host                      | Can gate a private site?                      | Use it for                    |
+| ------------------------- | --------------------------------------------- | ----------------------------- |
+| Netlify (git-connected)   | Yes — team-only, built in, free tier          | **This wiki** (nqub's own)    |
+| Cloudflare Pages + Access | Yes — email, one-time PIN, or SSO, free tier  | Client wikis                  |
+| Vercel                    | Yes, on Pro                                   | Alternative if already in use |
+| GitHub Pages              | **No** — private Pages needs Enterprise Cloud | Public wikis only             |
 
-Repository **secrets**: `CLOUDFLARE_API_TOKEN` (needs _Cloudflare Pages: Edit_)
-and `CLOUDFLARE_ACCOUNT_ID`. Repository **variable**:
-`CLOUDFLARE_PROJECT_NAME`.
+This wiki runs on Netlify, connected directly to this repo (Site configuration
+→ Build & deploy → Continuous deployment). Every push to `main` rebuilds and
+republishes — no workflow needed for that.
 
-Pull requests get their own preview deployment, and the workflow posts the URL
-as a PR comment. Previews build the search index too, so `⌘K` behaves there
-exactly as it will in production.
+`deploy-cloudflare.yml` targets Cloudflare Pages + PR previews and is the right
+default for a **client** wiki. `deploy.yml` (GitHub Pages) is manual-only, for
+the rare genuinely-public wiki — kept manual so it never races Netlify's
+auto-deploy on this repo.
 
-Production deploys run `npm run preflight -- --strict` first, so a wiki still
-carrying `example.com` or `your-org` fails loudly instead of shipping. Previews
-skip that check on purpose — a preview is allowed to be half-finished.
+**Netlify credits are a hard cap, not a soft limit** (free tier: 300/month, 15
+per production deploy — roughly 20 deploys before the site pauses entirely).
+During a content-heavy stretch, turn off auto-deploy without losing the
+editors' ability to keep saving: **Project configuration → Build & deploy →
+Continuous deployment → Build settings → Configure → Build status → Stopped
+builds.** Pushes queue for free; flip back to **Active** and trigger one
+deploy to publish the whole batch. ("Lock to stop auto publishing" is a
+_different_, unrelated toggle — it still builds on every push, just doesn't
+publish it. Only **Stopped builds** stops the credit spend.)
 
-The full provisioning checklist lives in the wiki itself, at
-`/wiki/operations/client-delivery`.
+### Gating this wiki: Descope
+
+Netlify's own "team protection" gate requires every viewer to be invited as a
+Netlify teammate — fine here, wrong for a client. This wiki instead uses
+**Descope**, wired directly into the template:
+
+- `netlify/edge-functions/auth-gate.ts` runs in front of every page and checks
+  for a valid Descope session cookie (`DS`), verified against that Descope
+  project's public JWKS.
+- `src/pages/login.astro` renders Descope's hosted login widget, and copies
+  the session it produces into a first-party `DS` cookie itself — Descope's
+  own cookie-mode only sets cookies on its own domain unless you pay for a
+  custom domain, which never reaches this origin.
+- Turn it on: `auth.enabled: true` + `auth.descopeProjectId` in
+  `wiki.config.ts`, the `DESCOPE_PROJECT_ID` env var in Netlify (scoped to
+  include Functions), and in the Descope Console set session persistence to a
+  cookie named `DS`.
+
+**Self-signup is not the same as an allowlist.** A `sign-up-or-in` flow lets
+anyone who can receive an email verify it and get in — a speed bump, not
+access control. Restrict the flow itself with a domain condition (e.g. only
+`@yourcompany.com`), or use `sign-in` mode and pre-provision every user in the
+Descope Console, before treating this as a real gate.
+
+While `auth.enabled` is `false` (the default), the edge function fails open —
+a fresh clone is never accidentally locked out before Descope is configured.
+
+Cloudflare Access is the better fit for an **external client** — gates by the
+client's own email domain or SSO, no seat per reader.
+
+### Editing without a GitHub account
+
+Two people-facing editors ship, both gated the same way as reading:
+
+- **`/admin`** — [Sveltia CMS](https://github.com/sveltia/sveltia-cms), a full
+  visual editor. Needs a GitHub account (its own OAuth sign-in).
+- **`/wiki/edit?id=<page>`** — this repo's own in-page editor. No GitHub
+  account needed: it checks the same Descope session already gating the wiki,
+  requires a `Wiki Edit` permission (Descope RBAC, not the default role), and
+  commits through one shared, repo-scoped credential (`GITHUB_COMMIT_TOKEN`, a
+  fine-grained PAT — Contents: Read and write only, set as a **secret**
+  Netlify env var, unlike `DESCOPE_PROJECT_ID` which is meant to be public).
+  `.md` pages only; `.mdx` pages carry custom components a plain-text editor
+  can't safely round-trip, so they fall back to `/admin`.
+
+Setting up `Wiki Edit`: Descope Console → **Authorization → RBAC** → create a
+permission named exactly `Wiki Edit`, attach it to a role, assign that role to
+whoever should be able to save. Everyone else keeps read access via the
+default role, just not write.
+
+### Provisioning a new client wiki
+
+1. **Create the repo.** Private. Copy this template into it.
+2. **Fill in `wiki.config.ts`** — `site`, `base`, `name`, `tagline`, `repo`, a theme.
+3. **`npm run preflight`** — lists any template placeholder still in place. The production deploy runs it with `--strict` and refuses to publish while any remain.
+4. **Pick a host per the table above.** Client → Cloudflare Pages (secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, variable `CLOUDFLARE_PROJECT_NAME`, enable the `push` trigger in `deploy-cloudflare.yml`). Internal → connect the Netlify site to the repo (build settings come from `netlify.toml`).
+5. **Put an access gate in front of it** (Cloudflare Access for a client, Descope for something Netlify-hosted) _before_ the first real content goes in.
+6. **Set up editing.** `/admin` needs a GitHub OAuth app registered with Netlify's OAuth provider (two clicks, no Worker, since Sveltia falls back to Netlify's own OAuth client). The in-page editor needs `GITHUB_COMMIT_TOKEN` plus the `Wiki Edit` Descope permission.
+7. **Update `.github/CODEOWNERS`** so reviews route to real people.
+8. **Replace the content** in `src/content/docs/`.
+9. **Hand over** — walk them through `CONTRIBUTING.md`.
+
+### Who gets what access
+
+| Role             | Repo                          | Site                                            |
+| ---------------- | ----------------------------- | ----------------------------------------------- |
+| Us               | Admin                         | Access policy owner                             |
+| Client reviewers | None                          | Access allowlist                                |
+| Client editors   | None — use the in-page editor | Access allowlist + `Wiki Edit` permission       |
+| The public       | None                          | Blocked, unless the wiki is deliberately public |
+
+**Before publishing anything real:** confirm the gate is live by opening the
+production URL in a private window. If the page loads without a sign-in
+prompt, it is public — and so is the search index.
 
 ## Who edits it
 
 Three tiers, no one forced up a level:
 
-| Editor                  | How                                                                 | Needs                       |
-| ----------------------- | ------------------------------------------------------------------- | --------------------------- |
-| Anyone with repo access | **"Edit this page"** → GitHub web editor → PR                       | A GitHub account            |
-| Non-technical           | **`/admin`** — visual editor, git-backed                            | One-time OAuth Worker setup |
-| Developers              | `npm run dev`, or open `src/content/docs/` as an **Obsidian vault** | Node                        |
+| Editor                  | How                                                                 | Needs                         |
+| ----------------------- | ------------------------------------------------------------------- | ----------------------------- |
+| Anyone with `Wiki Edit` | **"Edit this page"** → in-page editor → saves straight to `main`    | A Descope login, nothing else |
+| Anyone with repo access | GitHub web editor → PR                                              | A GitHub account              |
+| Developers              | `npm run dev`, or open `src/content/docs/` as an **Obsidian vault** | Node                          |
 
 The Obsidian route works with no export step because the content is plain
 Markdown and the `[[wikilink]]` syntax is the same one this wiki renders.
 
-`/admin` is [Sveltia CMS](https://github.com/sveltia/sveltia-cms). Its config is
-**generated** from `wiki.config.ts` by `npm run gen:cms` (which `npm run build`
-runs for you), so the editor can never end up pointed at the wrong client's
-repo. Sign-in needs the `sveltia-cms-auth` Cloudflare Worker plus a GitHub OAuth
-app — see `CONTRIBUTING.md`. Until that exists, `/admin` loads but cannot
-authenticate.
+`/admin` is [Sveltia CMS](https://github.com/sveltia/sveltia-cms). Its config
+is **generated** from `wiki.config.ts` by `npm run gen:cms` (which
+`npm run build` runs for you), so the editor can never end up pointed at the
+wrong client's repo.
 
 Review routing is in `.github/CODEOWNERS`.
 

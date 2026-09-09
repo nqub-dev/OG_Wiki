@@ -147,7 +147,7 @@ export const wiki: WikiConfig = {
     ],
   },
 
-  sections: ['Start Here', 'Handbook', 'Engineering', 'Operations', 'Reference'],
+  sections: ['Start Here', 'Handbook', 'nqub Products', 'Clients Area'],
 
   navLinks: [
     { label: 'Tags', href: '/tags' },

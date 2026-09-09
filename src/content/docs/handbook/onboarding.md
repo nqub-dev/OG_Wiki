@@ -1,45 +1,37 @@
 ---
 title: Onboarding
-description: A first-week template for new team members — replace with the client's real process.
+description: Email, ACH, holidays, and other first-week logistics.
 icon: 🌱
 section: Handbook
 order: 1
-tags: [people, onboarding, template]
+tags: [onboarding, people]
 status: draft
-updated: 2026-08-18
 owner: Unassigned
 ---
 
-## Before day one
+## Email
 
-- [ ] Laptop ordered and shipped
-- [ ] Accounts created (email, chat, repo, VPN)
-- [ ] Buddy assigned
-- [ ] First-week calendar populated
+_Add: how to request an nqub email account, mail client setup, distribution
+lists to join._
 
-## Day one
+## ACH
 
-The goal is _belonging_, not throughput. Nobody ships on day one.
+_Add: how direct deposit / payroll setup works, who to contact, what forms
+are needed._
 
-1. Welcome call with the manager
-2. Meet the buddy — 30 minutes, no agenda
-3. Read [[start-here/welcome]] and skim the sidebar
-4. Get the dev environment running
+## Observed holidays
 
-## First week
+_Add: the holiday calendar._
 
-By Friday a new engineer should have merged one small change. Pick something
-real but low-stakes — a typo fix in this wiki counts.
+| Holiday | Date |
+| ------- | ---- |
+|         |      |
 
-## First month
+## Other
 
-- Shadow one on-call shift ([[operations/runbook]])
-- Present something learned at a team session
-- Update one page in this wiki that confused you
-
-That last one matters. New people are the only ones who can see which docs are
-unclear, and that ability expires in about six weeks.
+_Add anything else a new person needs in their first week — equipment,
+accounts, buddy assignment, etc._
 
 ## Related
 
-- [[start-here/how-to-edit]] — how to make that wiki edit
+- [[handbook/brand]]
